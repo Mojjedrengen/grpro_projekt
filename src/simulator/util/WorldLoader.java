@@ -151,8 +151,9 @@ public class WorldLoader {
      * @param line - the line to parse
      * @param lineNumber - the line number for the line. Only used for debugging purposes
      */
-    private void parseLine(String line, int lineNumber) { line =
-        line.toLowerCase(); final String[] tokens = line.split(" ");
+    private void parseLine(String line, int lineNumber) { 
+        line = line.toLowerCase();
+        final String[] tokens = line.split(" ");
 
         if(tokens.length != 2) 
             throw new InvalidWorldInputFileException("Unrecongized input format", line, lineNumber);
