@@ -6,6 +6,7 @@ import simulator.actors.Animal;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.Iterator;
 
 /**
  * A hole that rabbits can go into during the night
@@ -135,9 +136,13 @@ public class RabbitHole extends NonBlockable {
      * @param world the current world
      */
     public void destroyHole(World world) {
-        for (RabbitHole hole : this.connectedHoles) { // Loop gives ConcurrentModificationException
-            hole.disconnectHole(this);
+
+        Iterator<RabbitHole> it = this.connectedHoles.iterator();
+        while (it.hasNext()) {
+            RabbitHole hole = it.next();
+            it.remove();
         }
+
         this.connectedHoles = null;
         this.inhabitants = null;
         world.delete(this);

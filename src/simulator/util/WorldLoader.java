@@ -65,10 +65,12 @@ public class WorldLoader {
         }
 
         while(scanner.hasNextLine()) {
-            inputLine = scanner.nextLine();
+            inputLine = scanner.nextLine().trim();
             lineNumber++;
 
-            this.parseLine(inputLine.trim(), lineNumber);
+            if(inputLine.length() == 0) continue;
+
+            this.parseLine(inputLine, lineNumber);
         }
 
         scanner.close();

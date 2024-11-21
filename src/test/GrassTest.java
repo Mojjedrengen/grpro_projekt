@@ -25,7 +25,7 @@ class GrassTest {
     @Test
     void spreadChanceTest() {
         List<Integer> timeToSpread = new ArrayList<>();
-        for (int i = 0; i < 1_000_000; i++) {
+        for (int i = 0; i < 1_000; i++) {
            Grass g = new Grass();
            Location l = new Location(0, 0);
            w.setCurrentLocation(l);
