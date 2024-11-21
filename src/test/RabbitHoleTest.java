@@ -79,6 +79,7 @@ class RabbitHoleTest {
         Set<RabbitHole> connectedHoles = hole.getConnectedHoles();
         hole.destroyHole(world);
         for (RabbitHole connected : connectedHoles) {
+            if (connected.equals(hole)) continue;
             assertFalse(connected.getConnectedHoles().contains(hole));
         }
         assertNull(hole.getConnectedHoles());
