@@ -1,14 +1,11 @@
 package simulator.util;
 
-import java.util.Queue;
-import java.util.LinkedList;
-import java.util.HashMap;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.function.*;
-
 import itumulator.world.Location;
 import itumulator.world.World;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.Queue;
+import java.util.function.*;
 
 //import simulator.util.Utilities;
 
@@ -18,7 +15,7 @@ public class PathFinder {
     private Location currentLocation;
 
     public PathFinder(Location currentLocation) {
-        this.path = new LinkedList<Location>();
+        this.path = new LinkedList<>();
         this.currentLocation = currentLocation;
     }
 
@@ -89,7 +86,7 @@ public class PathFinder {
     * @param end - The final Location the BFS ended on
     */
     private void traceRoute(HashMap<Location, Location> map, Location end) {
-        ArrayList<Location> pathBuilder = new ArrayList<>();
+        LinkedList<Location> pathBuilder = new LinkedList<>();
         pathBuilder.add(end);
 
         Location startLocation = this.currentLocation;
