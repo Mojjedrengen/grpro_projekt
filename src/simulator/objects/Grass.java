@@ -2,6 +2,7 @@ package simulator.objects;
 
 import itumulator.executable.DisplayInformation;
 import itumulator.executable.DynamicDisplayInformationProvider;
+import itumulator.simulator.Actor;
 import itumulator.world.Location;
 import itumulator.world.World;
 
@@ -15,7 +16,7 @@ import java.util.Set;
  * Class to create grass
  * @author Moto
  */
-public class Grass extends NonBlockable implements DynamicDisplayInformationProvider {
+public class Grass extends NonBlockable implements DynamicDisplayInformationProvider, Actor {
     private final int chanceToSpreed = 10; // this is the chance for the grass to spread. Current is 1/10
     private int grassStage = 0; // The stage of the grass
     private final int grassMaxStage = 3; // the max stage for the grass
