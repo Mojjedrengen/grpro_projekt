@@ -131,12 +131,14 @@ public class RabbitHole extends NonBlockable {
     /**
      * Method to destroy the hole.
      * Removes the hole from the network then deletes it form the world
+     * Currently does not work. Throws an exception.
      * @param world the current world
      */
     public void destroyHole(World world) {
-        for (RabbitHole hole : this.connectedHoles) {
+        for (RabbitHole hole : this.connectedHoles) { // Loop gives ConcurrentModificationException
             hole.disconnectHole(this);
         }
+        this.connectedHoles = null;
         this.inhabitants = null;
         world.delete(this);
     }
