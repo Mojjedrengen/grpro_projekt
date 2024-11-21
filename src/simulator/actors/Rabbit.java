@@ -33,6 +33,16 @@ public class Rabbit extends Animal {
         return this.assignedHole.getInhabitants().contains(this);
     }
 
+    @Override
+    public void reproduce(World world) {
+        Random random = new Random();
+        if(this.assignedHole.getInhabitants().size() > 1) {
+            if(random.nextInt(20) == 5) {
+                this.assignedHole.animalAdd(new Rabbit());
+            }
+        }
+    }
+
     // Assign a hole to the rabbit
     public void assignHole(RabbitHole rabbitHole) {
         this.assignedHole = rabbitHole;
@@ -121,6 +131,9 @@ public class Rabbit extends Animal {
         // Rabbit-specific behavior
         if(world.isNight()) {
             if(this.hasHole()) this.goHole(world); // Try moving towards its hole if it has one
+            if(this.isInHole()) {
+                this.reproduce(world);
+            }
             else {
                 this.tryToMakeHole(world);
                 if(!this.hasHole()) this.wander(world);
