@@ -56,7 +56,7 @@ public class Grass extends NonBlockable implements DynamicDisplayInformationProv
      * @param world - Reference to the world
      */
     public void consume(World world) {
-        // TODO
+        world.delete(this);
     }
 
     /**

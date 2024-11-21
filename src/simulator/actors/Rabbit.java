@@ -1,30 +1,23 @@
 package simulator.actors;
 
 import java.util.List;
+import java.util.Random;
+import java.util.Set;
 import itumulator.world.World;
 import itumulator.world.Location;
 
 import simulator.util.PathFinder;
+import simulator.objects.NonBlockable;
 import simulator.objects.Grass;
+import simulator.objects.RabbitHole;
 
 public class Rabbit extends Animal {
 
-    private Location assignedHole; // The hole assigned to this rabbit
+    private RabbitHole assignedHole; // The hole assigned to this rabbit
     private PathFinder pathFinder;
 
-    public Rabbit(int startEnergy) {
-        super(startEnergy); // Call the Animal superclass constructor
-        this.assignedHole = null; // No hole assigned initially
-        // PathFinder expects starting location, setting to null for now
-        this.pathFinder = new PathFinder(null);
-    }
-
-
-    // NOTE: Current implementation of WorldLoader cannot handle constructor arguments.
-    // Will be fixed soon. For the meanwhile, give default energy levels to all animals
-    // and have a constructor with no arguments
     public Rabbit() {
-        super(100); // Call the Animal superclass constructor
+        super(20, 9); // Call the Animal superclass constructor
         this.assignedHole = null; // No hole assigned initially
         // PathFinder expects starting location, setting to null for now
         this.pathFinder = new PathFinder(null);
@@ -35,19 +28,30 @@ public class Rabbit extends Animal {
         return assignedHole != null;
     }
 
+    public boolean isInHole() {
+        if(this.assignedHole == null) return false;
+        return this.assignedHole.getInhabitants().contains(this);
+    }
+
     // Assign a hole to the rabbit
-    public void assignHole(Location holeLocation) {
-        this.assignedHole = holeLocation;
+    public void assignHole(RabbitHole rabbitHole) {
+        this.assignedHole = rabbitHole;
     }
 
     // Move towards the assigned hole
     public void goHole(World world) {
         if (!hasHole()) { //Checks if rabit has a hole to return to
             return;
+        }else if( assignedHole.getInhabitants().contains(this) ) {
+            // Rabbit is already in its hole
+            return;
         }
 
         Location currentLocation = world.getLocation(this);
-        if (currentLocation.equals(assignedHole)) { //Checks if rabbit is already at hole
+        Location rabbitHoleLocation = assignedHole.getLocation(world);
+        if (currentLocation.equals(rabbitHoleLocation)) { // Rabbit enters hole
+            assignedHole.animalEnters(this);
+            world.remove(this);
             return;
         }
         //if statement to only go towards hole if it's evening time...
@@ -55,12 +59,14 @@ public class Rabbit extends Animal {
 
         this.pathFinder.setLocation(currentLocation);
         Location nextStep = null;
-        if(this.pathFinder.hasPath() && this.pathFinder.isFinalLocationInPath(this.assignedHole) ) {
+        if(pathFinder.hasPath() && 
+           pathFinder.isFinalLocationInPath(rabbitHoleLocation) ) {
+
             nextStep = (this.pathFinder.getPath()).poll(); // Move closer to goal
         }else { // Path hasn't been found yet
 
             // findPathToLocation returns false if no route was found
-            if(!this.pathFinder.findPathToLocation(this.assignedHole, world)) {
+            if(!this.pathFinder.findPathToLocation(rabbitHoleLocation, world)) {
                 // No route to hole
                 return;
             }
@@ -76,32 +82,94 @@ public class Rabbit extends Animal {
         }
     }
 
+    private void exitHole(World world) {
+        Location holeLocation = this.assignedHole.getLocation(world);
+
+        // TODO Maybe move world remove logic for RabbitHole to the class itself
+        // If the rabbit hole tile is empty, then rabbit pops out here
+        if(world.isTileEmpty(holeLocation)) {
+            this.assignedHole.animalLeave(this);
+            world.setTile(holeLocation, this);
+        }else { // If rabbit hole is blocked, rabbit appears on one of the tiles around the hole
+            Set<Location> tiles = world.getEmptySurroundingTiles(holeLocation);
+            if(tiles.isEmpty()) {
+                // Rabbit can't exit, everything is blocked
+                return;
+            }
+            this.assignedHole.animalLeave(this);
+            world.setTile(tiles.iterator().next(), this);
+        }
+
+    }
+
+    private void tryToMakeHole(World world) {
+
+        Location currentLocation = world.getLocation(this);
+        if(world.containsNonBlocking(currentLocation)) return;
+
+        Random random = new Random();
+        if(random.nextInt(101) <= 95) return;
+
+        // TODO find a way to add this to our WorldLoader list
+        RabbitHole rabbitHole = new RabbitHole();
+        world.setTile(currentLocation, rabbitHole);
+        this.assignHole(rabbitHole);
+    }
+
     @Override
     public void act(World world) {
         // Rabbit-specific behavior
-        if (hasHole() && world.isNight()) {
-            goHole(world); // Try moving towards its hole if it has one
-        } else {
-            wander(world); // Wander randomly if no hole
+        if(world.isNight()) {
+            if(this.hasHole()) this.goHole(world); // Try moving towards its hole if it has one
+            else {
+                this.tryToMakeHole(world);
+                if(!this.hasHole()) this.wander(world);
+            }
+        }else if( this.isInHole() && world.isDay() ) {
+            // Try to exit hole since it's day again
+            this.exitHole(world);
+        }else {
+            this.wander(world); // Wander randomly if no hole
         }
 
-        eat(world); // have eat before hole assignment so it can make tile empty for easier tilecheck
-        if(world.getNonBlocking(world.getLocation(this)) == null || hasHole() == true) {
-            assignHole(world.getLocation(this)); //if spot is empty and if they dont already have a hole
+        if( !this.isInHole() ) {
+            this.eat(world); // have eat before hole assignment so it can make tile empty for easier tilecheck
+            
+            // Bad practice by using instanceof, we have disapointed Claus, but this will have to do for now
+            // Potential fix would be keeping a separate list containing all rabbit holes in the world
+            Location currentLocation = world.getLocation(this);
+            if(world.containsNonBlocking(currentLocation)) {
+                NonBlockable nonBlock = (NonBlockable)world.getNonBlocking(world.getLocation(this));
+                if(nonBlock instanceof RabbitHole) {
+                    this.assignHole((RabbitHole)nonBlock);
+                }
+            }
         }
-        decreaseEnergy(1, world); // Lose 1 energy per act step
+
+        // Lose amount of energy corresponding to the rabbits age
+        // As the rabbit ages, it loses energy faster
+        // Lose 10 extra if the rabbit hasn't eaten at all today
+        if(world.getCurrentTime() == 0) {
+            // Decrease energy also causes aging
+            this.decreaseEnergy(this.getAge() + (this.hasEatenToday ? 0 : 10), world); 
+            this.resetHunger();
+            System.out.println("Energy levels end of day: " + this.getEnergy());
+        }
+
     }
 
     @Override
     public void eat(World world) {
         Location currentLocation = world.getLocation(this);
-        if(world.getNonBlocking(currentLocation) instanceof Grass) {
-            //Grass eating method from grass class??
-            // TODO
-//            Grass.consume();
-            //Increase energy??
-        } else {
-            //no grass to eat :(
+
+        if(world.containsNonBlocking(currentLocation)) {
+            NonBlockable nonBlockable = (NonBlockable)world.getNonBlocking(currentLocation);
+            if(nonBlockable instanceof Grass) {
+                Grass grass = (Grass)nonBlockable;
+                grass.consume(world);
+                this.hasEatenToday = true;
+                this.increaseEnergy(1);
+            }
         }
     }
 

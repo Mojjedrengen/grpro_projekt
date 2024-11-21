@@ -20,7 +20,7 @@ public class Main {
 
         WorldLoader wl = null;
         try {
-            wl = new WorldLoader("resources/inputs/week-1/t1-2cde.txt");
+            wl = new WorldLoader("resources/inputs/week-1/new_input.txt");
         }catch(FileNotFoundException e) {
             System.out.println("Input file not found:");
             System.out.println(e.getMessage());
@@ -30,7 +30,8 @@ public class Main {
 
         Program p = new Program(worldSize, 800, 200);
         World w = p.getWorld();
-        p.setDisplayInformation(Rabbit.class, new DisplayInformation(Color.red));
+        p.setDisplayInformation(Rabbit.class, new DisplayInformation(Color.red, "rabbit-large"));
+        p.setDisplayInformation(RabbitHole.class, new DisplayInformation(Color.black, "hole"));
 
         List<Animal> animals = wl.getAnimals();
         List<NonBlockable> nonBlockables = wl.getNonBlockables();

@@ -9,11 +9,17 @@ import java.util.Random;
 
 public abstract class Animal implements Actor {
     private int energy;
+    final int maxEnergy;
+    final int maxAge;
     private int age;
+    protected boolean hasEatenToday;
 
-    public Animal(int startEnergy) {
+    public Animal(int startEnergy, int maxAge) {
         this.energy = startEnergy;
+        this.maxEnergy = startEnergy;
         this.age = 0;
+        this.hasEatenToday = false;
+        this.maxAge = maxAge;
     }
 
     // NOTE: Current implementation of WorldLoader cannot handle constructor arguments.
@@ -22,6 +28,8 @@ public abstract class Animal implements Actor {
     public Animal() {
         this.energy = 100;
         this.age = 0;
+        this.maxEnergy = this.energy;
+        this.maxAge = 10;
     }
 
     // Getter
@@ -31,7 +39,7 @@ public abstract class Animal implements Actor {
 
     // Increase energy
     public void increaseEnergy(int amount) {
-        this.energy += amount;
+        this.energy = Math.min(this.energy + amount, this.maxEnergy);
     }
 
     // Decreases energy
@@ -45,7 +53,9 @@ public abstract class Animal implements Actor {
 
     public void killAnimal(World world) {
         if(world != null) {
-            world.remove(this);
+            //world.remove(this);
+            world.delete(this);
+            System.out.println("Animal died");
         }
     }
 
@@ -76,4 +86,13 @@ public abstract class Animal implements Actor {
         reproduce(world); // Reproduce if conditions are met
         decreaseEnergy(1, world); // Lose energy per "step"
     }
+
+    public void resetHunger() {
+        this.hasEatenToday = false;
+    }
+
+    protected int getAge() {
+        return this.age;
+    }
+
 }

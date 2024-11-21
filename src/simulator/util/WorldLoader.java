@@ -7,8 +7,10 @@ import java.util.LinkedList;
 import java.util.Random;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.lang.reflect.Constructor;
 
 import simulator.objects.NonBlockable;
+import simulator.objects.RabbitHole;
 import simulator.actors.*;
 import simulator.actors.exceptions.*;
 
@@ -90,12 +92,17 @@ public class WorldLoader {
      * @param unknownObjectString - string containing animal name
      * @return dynamic animal type or null if the animal does not exist
      */
-    private Class<? extends Animal> parseAnimal(String unknownObjectString) {
-        switch(unknownObjectString) {
-            case "rabbit":
-                return Rabbit.class;
-            default:
-                return null;
+    private Constructor<? extends Animal> parseAnimal(String unknownObjectString) {
+        try{
+            switch(unknownObjectString) {
+                case "rabbit":
+                    return Rabbit.class.getConstructor();
+                default:
+                    return null;
+            }
+        }catch(Exception e) {
+            System.out.println("Missing constructor for type: " + unknownObjectString);
+            return null;
         }
     }
 
@@ -105,12 +112,19 @@ public class WorldLoader {
      * @param unknownObjectString - string containing NonBlockable name
      * @return dynamic NonBlockable type or null if the NonBlockable does not exist
      */
-    private Class<? extends NonBlockable> parseNonBlockable(String unknownObjectString) {
-        switch(unknownObjectString) {
-            case "grass":
-                return Grass.class;
-            default:
-                return null;
+    private Constructor<? extends NonBlockable> parseNonBlockable(String unknownObjectString) {
+        try{
+            switch(unknownObjectString) {
+                case "grass":
+                    return Grass.class.getConstructor();
+                case "burrow":
+                    return RabbitHole.class.getConstructor();
+                default:
+                    return null;
+            }
+        }catch(Exception e) {
+            System.out.println("Missing constructor for type: " + unknownObjectString);
+            return null;
         }
     }
 
@@ -156,28 +170,28 @@ public class WorldLoader {
         final String[] tokens = line.split(" ");
 
         if(tokens.length != 2) 
-            throw new InvalidWorldInputFileException("Unrecongized input format", line, lineNumber);
+        throw new InvalidWorldInputFileException("Unrecongized input format", line, lineNumber);
 
         // Parses the number or range that comes after object name, e.g. "Rabbit 2" or "Rabbit 5-10"
         final int numberOfObjects = parseObjectNumber(tokens[1].trim());
         if(numberOfObjects == -1)
-            throw new InvalidWorldInputFileException("Invalid number or range of objects", line, lineNumber);
+        throw new InvalidWorldInputFileException("Invalid number or range of objects", line, lineNumber);
 
         try {
             String unknownObjectString = tokens[0].trim();
 
             // Check if object is an animal
-            Class<? extends Animal> animal = parseAnimal(unknownObjectString);
+            Constructor<? extends Animal> animal = parseAnimal(unknownObjectString);
             // Check if object is an nonblockable
-            Class<? extends NonBlockable> nonBlockable = parseNonBlockable(unknownObjectString);
+            Constructor<? extends NonBlockable> nonBlockable = parseNonBlockable(unknownObjectString);
 
             if(animal != null) {
                 for(int i = 0; i < numberOfObjects; i++) {
-                    this.animals.add( animal.getDeclaredConstructor().newInstance() );
+                    this.animals.add( animal.newInstance() );
                 }
             }else if(nonBlockable != null) {
                 for(int i = 0; i < numberOfObjects; i++) { 
-                    this.nonblockables.add( nonBlockable.getDeclaredConstructor().newInstance() );
+                    this.nonblockables.add( nonBlockable.newInstance() );
                 }
             }else throw new InvalidWorldInputFileException("Unknown Animal/NonBlockable", line, lineNumber);
 
