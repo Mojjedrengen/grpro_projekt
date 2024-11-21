@@ -24,11 +24,6 @@ public class RabbitHole extends NonBlockable {
         this.connectedHoles.add(this);
     }
 
-    @Override
-    public void act(World world) {
-
-    }
-
     /**
      * Constructor to create a hole that is connected to a single other hole
      * @param hole the connected hole

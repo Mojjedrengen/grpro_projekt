@@ -7,6 +7,6 @@ import itumulator.world.NonBlocking;
  * This class is easy to contain the non-blocking actors
  * @author Moto
  */
-public abstract class NonBlockable implements NonBlocking, Actor {
+public abstract class NonBlockable implements NonBlocking {
 
 }
