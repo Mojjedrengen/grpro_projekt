@@ -68,4 +68,27 @@ public class Grass extends NonBlockable implements DynamicDisplayInformationProv
         if (grassStage < grassMaxStage) return new DisplayInformation(Color.yellow);
         return new DisplayInformation(Color.green);
     }
+
+    /**
+     * Gets grassStage to test
+     * @return the current GrassStage;
+     */
+    public int getGrassStage() {
+        return grassStage;
+    }
+    /**
+     * Gets the max GrassStage to test
+     * @return returns the grass stage
+     */
+    public int getGrassMaxStage() {
+        return grassMaxStage;
+    }
+
+    /**
+     * Gets the chance to spreed to test
+     * @return the chance for the grass to spreed
+     */
+    public int getChanceToSpreed() {
+        return chanceToSpreed;
+    }
 }
