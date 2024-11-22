@@ -44,14 +44,6 @@ public class RabbitTest {
         Location startingLocation = new Location(0,0);
         Location goalLocation = new Location(4,4);
 
-        PathFinder pf = r.getPathFinder();
-
-        pf.setLocation(startingLocation);
-        pf.findPathToLocation(goalLocation, this.w);
-
-        // Path finder gives shortest route which in this case would be going
-        // diagonally across the world
-        assertTrue(pf.getPath().size() == 4);
 
         // At time = 0, animal registers start of new day and therefore loses energy if it hasn't eaten.
         // We must perform a time step so that the rabbit doesn't instantly starve after two steps
@@ -61,6 +53,7 @@ public class RabbitTest {
 
         this.w.setCurrentLocation(startingLocation);
         this.w.setTile(startingLocation, r);
+        r.setPathTo(w, goalLocation);
         // Take 4 steps
         r.act(this.w);
         r.act(this.w);
@@ -83,11 +76,13 @@ public class RabbitTest {
         Location grassLocation = new Location(4,4);
         this.w.setTile(grassLocation, grass);
 
-        r.act(this.w);
+        // Rabbit must move 4 steps to reach tile with grass
+        r.act(w);
+        r.act(w);
+        r.act(w);
+        r.act(w);
 
-        PathFinder pf = r.getPathFinder();
-
-        assertTrue( pf.getFinalLocationInPath().equals(grassLocation) );
+        assertTrue( this.w.getLocation(r).equals(grassLocation) );
 
     }
 

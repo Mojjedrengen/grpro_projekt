@@ -125,30 +125,31 @@ public class Rabbit extends Animal {
         this.assignHole(rabbitHole);
     }
 
+    private void searchForHole(World world) {
+        Set<Location> search = world.getSurroundingTiles(3);
+        for (Location location : search) {
+            if (world.containsNonBlocking(location) && world.getNonBlocking(location) instanceof RabbitHole hole) {
+                this.assignedHole = hole;
+                this.goHole(world);
+            }
+        }
+    }
+
     @Override
     public void act(World world) {
         // Rabbit-specific behavior
         if(world.isNight()) {
             if(this.hasHole()) this.goHole(world); // Try moving towards its hole if it has one
-            else if (world.isOnTile(this)){
-                Set<Location> search = world.getSurroundingTiles(3);
-                for (Location location : search) {
-                    if (world.containsNonBlocking(location) && world.getNonBlocking(location) instanceof RabbitHole hole) {
-                        this.assignedHole = hole;
-                        this.goHole(world);
-                    }
-                }
+            else if (world.isOnTile(this)) {
+                this.searchForHole(world);
             }
             if(this.isInHole()) {
                 if (!hasAttemptetToReproduce){
                     this.reproduce(world);
                 }
-            }
-            else if (!this.hasHole()){
+            }else if (!this.hasHole()){
                 this.tryToMakeHole(world);
                 if(!this.hasHole()) this.wander(world);
-            } else {
-               this.goHole(world);
             }
         }else if( this.isInHole() && world.isDay() ) {
             // Try to exit hole since it's day again
@@ -162,7 +163,7 @@ public class Rabbit extends Animal {
 
         if( !this.isInHole() ) {
             this.eat(world); // Try to eat
-            
+
             // Bad practice by using instanceof, we have disapointed Claus, but this will have to do for now
             // Potential fix would be keeping a separate list containing all rabbit holes in the world
             Location currentLocation = world.getLocation(this);
@@ -197,10 +198,8 @@ public class Rabbit extends Animal {
 
         // Has not eaten today, actively search for food
         if(!this.hasEatenToday) {
-            System.out.println("Has not eaten today");
             if(!this.pathFinder.hasPath() || 
             !Utilities.locationContainsNonBlockingType(world, this.pathFinder.getFinalLocationInPath(), Grass.class)) {
-                System.out.println("Looking for new grass(path)");
                 this.pathFinder.setLocation(currentLocation);
                 this.pathFinder.findPathToNearest(Grass.class, world);
             }
@@ -220,6 +219,13 @@ public class Rabbit extends Animal {
                 this.pathFinder.clearPath();
             }
         }
+    }
+
+    // ONLY USED FOR UNIT TEST
+    // DON'T USE OTHERWISE
+    public void setPathTo(World world, Location location) {
+        this.pathFinder.setLocation(world.getLocation(this));
+        this.pathFinder.findPathToLocation(location, world);
     }
 
 }
