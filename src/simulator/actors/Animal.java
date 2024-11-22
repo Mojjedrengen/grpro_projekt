@@ -99,19 +99,28 @@ public abstract class Animal implements Actor {
         decreaseEnergy(1, world); // Lose energy per "step"
     }
 
-    public void resetHunger() {
+    protected void resetHunger() {
         this.hasEatenToday = false;
+    }
+
+    public void ate() {
+        this.hasEatenToday = true;
     }
 
     protected int getAge() {
         return this.age;
     }
 
+    // Currently unsused
     // Actively hunt for food, tries to find nearest food
     protected void activeHunt(World world) {
         Location currentLocation = world.getLocation(this);
         this.pathFinder.setLocation(currentLocation);
         this.pathFinder.findPathToNearest(this.foodType, world);
+    }
+
+    public final PathFinder getPathFinder() {
+        return this.pathFinder;
     }
 
 }
