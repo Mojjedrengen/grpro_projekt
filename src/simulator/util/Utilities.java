@@ -1,11 +1,11 @@
 package simulator.util;
 
-import itumulator.world.Location;
+import java.util.ArrayList;
 
 public class Utilities {
 
-    public static boolean locationEquals(Location a, Location b) {
-        return a.getX() == b.getX() && a.getY() == b.getY();
+    public static <T> T getLast(ArrayList<T> array) {
+        return array.get(array.size() - 1);
     }
 
 }

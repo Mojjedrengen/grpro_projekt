@@ -4,7 +4,9 @@ import itumulator.world.Location;
 import itumulator.world.World;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.Iterator;
 import simulator.actors.Animal;
+
 
 /**
  * A hole that rabbits can go into during the night
@@ -148,9 +150,12 @@ public class RabbitHole extends NonBlockable {
      * @param world the current world
      */
     public void destroyHole(World world) {
-        for (RabbitHole hole : this.connectedHoles) {
+        Iterator<RabbitHole> it = this.connectedHoles.iterator();
+
+        while (it.hasNext()) {
+            RabbitHole hole = it.next();
             if (hole.equals(this)) {continue;}
-            hole.disconnectHole(this);
+            it.remove();
         }
         this.connectedHoles = null;
         this.inhabitants = null;
