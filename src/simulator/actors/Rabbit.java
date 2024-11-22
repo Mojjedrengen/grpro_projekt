@@ -1,15 +1,13 @@
 package simulator.actors;
 
-import java.util.List;
+import itumulator.world.Location;
+import itumulator.world.World;
 import java.util.Random;
 import java.util.Set;
-import itumulator.world.World;
-import itumulator.world.Location;
-
-import simulator.util.PathFinder;
-import simulator.objects.NonBlockable;
 import simulator.objects.Grass;
+import simulator.objects.NonBlockable;
 import simulator.objects.RabbitHole;
+import simulator.util.PathFinder;
 
 public class Rabbit extends Animal {
 
@@ -31,6 +29,16 @@ public class Rabbit extends Animal {
     public boolean isInHole() {
         if(this.assignedHole == null) return false;
         return this.assignedHole.getInhabitants().contains(this);
+    }
+
+    @Override
+    public void reproduce(World world) {
+        Random random = new Random();
+        if(this.assignedHole.getInhabitants().size() > 1) {
+            if(random.nextInt(20) == 5) {
+                this.assignedHole.animalAdd(new Rabbit());
+            }
+        }
     }
 
     // Assign a hole to the rabbit
@@ -83,23 +91,9 @@ public class Rabbit extends Animal {
     }
 
     private void exitHole(World world) {
-        Location holeLocation = this.assignedHole.getLocation(world);
-
-        // TODO Maybe move world remove logic for RabbitHole to the class itself
-        // If the rabbit hole tile is empty, then rabbit pops out here
-        if(world.isTileEmpty(holeLocation)) {
-            this.assignedHole.animalLeave(this);
-            world.setTile(holeLocation, this);
-        }else { // If rabbit hole is blocked, rabbit appears on one of the tiles around the hole
-            Set<Location> tiles = world.getEmptySurroundingTiles(holeLocation);
-            if(tiles.isEmpty()) {
-                // Rabbit can't exit, everything is blocked
-                return;
-            }
-            this.assignedHole.animalLeave(this);
-            world.setTile(tiles.iterator().next(), this);
+        if (this.assignedHole != null) {
+            this.assignedHole.exitRabbit(this, world);
         }
-
     }
 
     private void tryToMakeHole(World world) {
@@ -121,6 +115,9 @@ public class Rabbit extends Animal {
         // Rabbit-specific behavior
         if(world.isNight()) {
             if(this.hasHole()) this.goHole(world); // Try moving towards its hole if it has one
+            if(this.isInHole()) {
+                this.reproduce(world);
+            }
             else {
                 this.tryToMakeHole(world);
                 if(!this.hasHole()) this.wander(world);
@@ -140,8 +137,8 @@ public class Rabbit extends Animal {
             Location currentLocation = world.getLocation(this);
             if(world.containsNonBlocking(currentLocation)) {
                 NonBlockable nonBlock = (NonBlockable)world.getNonBlocking(world.getLocation(this));
-                if(nonBlock instanceof RabbitHole) {
-                    this.assignHole((RabbitHole)nonBlock);
+                if(nonBlock instanceof RabbitHole rabbitHole) {
+                    this.assignHole(rabbitHole);
                 }
             }
         }
@@ -164,8 +161,7 @@ public class Rabbit extends Animal {
 
         if(world.containsNonBlocking(currentLocation)) {
             NonBlockable nonBlockable = (NonBlockable)world.getNonBlocking(currentLocation);
-            if(nonBlockable instanceof Grass) {
-                Grass grass = (Grass)nonBlockable;
+            if(nonBlockable instanceof Grass grass) {
                 grass.consume(world);
                 this.hasEatenToday = true;
                 this.increaseEnergy(1);
