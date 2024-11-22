@@ -3,9 +3,11 @@ package simulator.objects;
 import itumulator.world.Location;
 import itumulator.world.World;
 import java.util.HashSet;
-import java.util.Set;
 import java.util.Iterator;
+import java.util.Random;
+import java.util.Set;
 import simulator.actors.Animal;
+import simulator.actors.Rabbit;
 
 
 /**
@@ -24,6 +26,27 @@ public class RabbitHole extends NonBlockable {
         this.inhabitants = new HashSet<>();
         this.connectedHoles.add(this);
     }
+
+    public void reproduceInhabitants(World world) {
+    Random random = new Random();
+    for (Animal animal : this.inhabitants) {
+        // Ensure there are at least two animals to reproduce
+        if (this.inhabitants.size() > 1 && random.nextInt(20) == 4) {
+            Animal offspring = new Rabbit(); // Creates a new Rabbit
+            this.animalAdd(offspring); // Adds the offspring to the rabbit hole
+            Location holeLocation = this.getLocation(world);
+            if (world.isTileEmpty(holeLocation)) {
+                world.setTile(holeLocation, offspring); // Places the offspring in the world
+            } else {
+                // Place offspring in one of the surrounding tiles
+                Set<Location> surroundingTiles = world.getEmptySurroundingTiles(holeLocation);
+                if (!surroundingTiles.isEmpty()) {
+                    world.setTile(surroundingTiles.iterator().next(), offspring);
+                }
+            }
+        }
+    }
+}
 
     /**
      * Constructor to create a hole that is connected to a single other hole

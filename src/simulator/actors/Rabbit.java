@@ -3,7 +3,6 @@ package simulator.actors;
 import itumulator.world.Location;
 import itumulator.world.World;
 import java.util.Random;
-import java.util.Set;
 import simulator.objects.Grass;
 import simulator.objects.NonBlockable;
 import simulator.objects.RabbitHole;
@@ -32,14 +31,9 @@ public class Rabbit extends Animal {
     }
 
     @Override
-    public void reproduce(World world) {
-        Random random = new Random();
-        if(this.assignedHole.getInhabitants().size() > 1) {
-            if(random.nextInt(20) == 5) {
-                this.assignedHole.animalAdd(new Rabbit());
-            }
-        }
-    }
+public void reproduce(World world) {
+        this.assignedHole.reproduceInhabitants(world);
+}
 
     // Assign a hole to the rabbit
     public void assignHole(RabbitHole rabbitHole) {
