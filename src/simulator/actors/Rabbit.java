@@ -8,6 +8,7 @@ import java.util.Set;
 import simulator.objects.Grass;
 import simulator.objects.NonBlockable;
 import simulator.objects.RabbitHole;
+import simulator.util.PathFinder;
 import simulator.util.Utilities;
 
 import java.util.Random;
