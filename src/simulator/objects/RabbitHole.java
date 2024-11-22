@@ -2,10 +2,9 @@ package simulator.objects;
 
 import itumulator.world.Location;
 import itumulator.world.World;
-import simulator.actors.Animal;
-
 import java.util.HashSet;
 import java.util.Set;
+import simulator.actors.Animal;
 
 /**
  * A hole that rabbits can go into during the night
@@ -34,6 +33,26 @@ public class RabbitHole extends NonBlockable {
         this.connectedHoles.add(this);
         this.connectedHoles.add(hole);
     }
+
+    public void exitRabbit(Animal rabbit, World world) {
+        Location holeLocation = this.getLocation(world);
+    
+        // If the rabbit hole tile is empty, place the rabbit there
+        if (world.isTileEmpty(holeLocation)) {
+            this.animalLeave(rabbit); // Remove the rabbit from the hole
+            world.setTile(holeLocation, rabbit); // Place the rabbit on the tile
+        } else {
+            // If the rabbit hole is blocked, place the rabbit on a surrounding empty tile
+            Set<Location> tiles = world.getEmptySurroundingTiles(holeLocation);
+            if (tiles.isEmpty()) {
+                // Rabbit can't exit, everything is blocked
+                return;
+            }
+            this.animalLeave(rabbit); // Remove the rabbit from the hole
+            world.setTile(tiles.iterator().next(), rabbit); // Place the rabbit on a nearby tile
+        }
+    }
+    
 
     /**
      * Constructor to create a hole that is a part of a hole network
