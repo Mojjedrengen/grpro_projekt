@@ -8,7 +8,11 @@ import java.util.Set;
 import simulator.objects.Grass;
 import simulator.objects.NonBlockable;
 import simulator.objects.RabbitHole;
-import simulator.util.PathFinder;
+import simulator.util.Utilities;
+
+import java.util.Random;
+import java.util.Set;
+
 
 public class Rabbit extends Animal {
 
@@ -16,8 +20,9 @@ public class Rabbit extends Animal {
     private PathFinder pathFinder;
     private boolean hasAttemptetToReproduce;
 
+
     public Rabbit() {
-        super(20, 9); // Call the Animal superclass constructor
+        super(20, 9, Grass.class); // Call the Animal superclass constructor
         this.assignedHole = null; // No hole assigned initially
         // PathFinder expects starting location, setting to null for now
         this.pathFinder = new PathFinder(null);
@@ -147,12 +152,15 @@ public class Rabbit extends Animal {
         }else if( this.isInHole() && world.isDay() ) {
             // Try to exit hole since it's day again
             this.exitHole(world);
+        } else if(this.pathFinder.hasPath()) { // If a path exists in the rabbits pathfinding, simply follow that
+            Location nextStep = this.pathFinder.getPath().poll();
+            if(world.isTileEmpty(nextStep)) world.move(this, nextStep);
         }else {
-            this.wander(world); // Wander randomly if no hole
+            this.wander(world); // Wander randomly if no path in pathFinder
         }
 
         if( !this.isInHole() ) {
-            this.eat(world); // have eat before hole assignment so it can make tile empty for easier tilecheck
+            this.eat(world); // Try to eat
             
             // Bad practice by using instanceof, we have disapointed Claus, but this will have to do for now
             // Potential fix would be keeping a separate list containing all rabbit holes in the world
@@ -178,18 +186,40 @@ public class Rabbit extends Animal {
 
     }
 
+    // TODO
+    // Move to animal abstract class since every animal has the small behaviour in this regard.
+    // The only different thing is the type of food, which can be specificed with Class<T> type.
     @Override
     public void eat(World world) {
+
         Location currentLocation = world.getLocation(this);
 
+        // Has not eaten today, actively search for food
+        if(!this.hasEatenToday) {
+            System.out.println("Has not eaten today");
+            if(!this.pathFinder.hasPath() || 
+            !Utilities.locationContainsNonBlockingType(world, this.pathFinder.getFinalLocationInPath(), Grass.class)) {
+                System.out.println("Looking for new grass(path)");
+                this.pathFinder.setLocation(currentLocation);
+                this.pathFinder.findPathToNearest(Grass.class, world);
+            }
+        }
+
+        // Always eat food if standing on top of food.
         if(world.containsNonBlocking(currentLocation)) {
             NonBlockable nonBlockable = (NonBlockable)world.getNonBlocking(currentLocation);
             if(nonBlockable instanceof Grass grass) {
                 grass.consume(world);
                 this.hasEatenToday = true;
                 this.increaseEnergy(1);
+
+                // There's a chance that while an animal is walking towards grass, the grass will grow towards the rabbit,
+                // causing it to eat twice and throwing the pathFinding off balance. We'll simply clear the pathFinder in this
+                // case to prevent any issues.
+                this.pathFinder.clearPath();
             }
         }
     }
 
 }
+
