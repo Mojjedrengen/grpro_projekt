@@ -3,6 +3,8 @@ package simulator.actors;
 import itumulator.world.Location;
 import itumulator.world.World;
 import java.util.Random;
+import java.util.Set;
+
 import simulator.objects.Grass;
 import simulator.objects.NonBlockable;
 import simulator.objects.RabbitHole;
@@ -15,11 +17,26 @@ import java.util.Set;
 public class Rabbit extends Animal {
 
     private RabbitHole assignedHole; // The hole assigned to this rabbit
+    private PathFinder pathFinder;
+    private boolean hasAttemptetToReproduce;
+
 
     public Rabbit() {
         super(20, 9, Grass.class); // Call the Animal superclass constructor
         this.assignedHole = null; // No hole assigned initially
         // PathFinder expects starting location, setting to null for now
+        this.pathFinder = new PathFinder(null);
+        this.hasAttemptetToReproduce = false;
+    }
+
+    /**
+     * Constructor to create a rabbit while it is inside a hole.
+     * Usefully for when the rabbits reproduce
+     * @param hole the hole the rabbit was created in
+     */
+    public Rabbit(RabbitHole hole) {
+        this();
+        this.assignedHole = hole;
     }
 
     // Check if the rabbit has an assigned hole
@@ -33,9 +50,10 @@ public class Rabbit extends Animal {
     }
 
     @Override
-public void reproduce(World world) {
+    public void reproduce(World world) {
         this.assignedHole.reproduceInhabitants(world);
-}
+        hasAttemptetToReproduce = true;
+    }
 
     // Assign a hole to the rabbit
     public void assignHole(RabbitHole rabbitHole) {
@@ -111,11 +129,25 @@ public void reproduce(World world) {
         // Rabbit-specific behavior
         if(world.isNight()) {
             if(this.hasHole()) this.goHole(world); // Try moving towards its hole if it has one
-            else if(this.isInHole()) {
-                this.reproduce(world);
-            }else {
+            else if (world.isOnTile(this)){
+                Set<Location> search = world.getSurroundingTiles(3);
+                for (Location location : search) {
+                    if (world.containsNonBlocking(location) && world.getNonBlocking(location) instanceof RabbitHole hole) {
+                        this.assignedHole = hole;
+                        this.goHole(world);
+                    }
+                }
+            }
+            if(this.isInHole()) {
+                if (!hasAttemptetToReproduce){
+                    this.reproduce(world);
+                }
+            }
+            else if (!this.hasHole()){
                 this.tryToMakeHole(world);
                 if(!this.hasHole()) this.wander(world);
+            } else {
+               this.goHole(world);
             }
         }else if( this.isInHole() && world.isDay() ) {
             // Try to exit hole since it's day again
@@ -149,6 +181,7 @@ public void reproduce(World world) {
             this.decreaseEnergy(this.getAge() + (this.hasEatenToday ? 0 : 10), world); 
             this.resetHunger();
             System.out.println("Energy levels end of day: " + this.getEnergy());
+            hasAttemptetToReproduce = false;
         }
 
     }

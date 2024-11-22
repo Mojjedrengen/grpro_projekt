@@ -27,27 +27,6 @@ public class RabbitHole extends NonBlockable {
         this.connectedHoles.add(this);
     }
 
-    public void reproduceInhabitants(World world) {
-    Random random = new Random();
-    for (Animal animal : this.inhabitants) {
-        // Ensure there are at least two animals to reproduce
-        if (this.inhabitants.size() > 1 && random.nextInt(20) == 4) {
-            Animal offspring = new Rabbit(); // Creates a new Rabbit
-            this.animalAdd(offspring); // Adds the offspring to the rabbit hole
-            Location holeLocation = this.getLocation(world);
-            if (world.isTileEmpty(holeLocation)) {
-                world.setTile(holeLocation, offspring); // Places the offspring in the world
-            } else {
-                // Place offspring in one of the surrounding tiles
-                Set<Location> surroundingTiles = world.getEmptySurroundingTiles(holeLocation);
-                if (!surroundingTiles.isEmpty()) {
-                    world.setTile(surroundingTiles.iterator().next(), offspring);
-                }
-            }
-        }
-    }
-}
-
     /**
      * Constructor to create a hole that is connected to a single other hole
      * @param hole the connected hole
@@ -59,9 +38,46 @@ public class RabbitHole extends NonBlockable {
         this.connectedHoles.add(hole);
     }
 
+    /**
+     * Constructor to create a hole that is a part of a hole network
+     * @param holes the hole network
+     */
+    public RabbitHole(Set<RabbitHole> holes) {
+        this.connectedHoles = new HashSet<>(holes);
+        this.inhabitants = new HashSet<>();
+        this.connectedHoles.add(this);
+    }
+
+    /**
+     * Method for the rabbit to reproduce inside the rabbit hole
+     * @param world the current world
+     */
+    public void reproduceInhabitants(World world) {
+        Random random = new Random();
+        Set<Animal> offSpringSet = new HashSet<>();
+        for (Animal animal : this.inhabitants) {
+            // Ensure there are at least two animals to reproduce
+            if (this.inhabitants.size() > 1 && random.nextInt(20) == 4 && offSpringSet.size() < this.inhabitants.size()/2) {
+                Animal offspring = new Rabbit(this); // Creates a new Rabbit
+                offSpringSet.add(offspring); // Adds the offspring to the rabbit hole
+            }
+        }
+        if (!offSpringSet.isEmpty()) {
+            for (Animal offSpring : offSpringSet) {
+                this.animalEnters(offSpring);
+                world.add(offSpring);
+            }
+        }
+    }
+
+    /**
+     * Method for when a rabbit leave the hole network
+     * @param rabbit the rabbit that leaves the hole
+     * @param world the current world
+     */
     public void exitRabbit(Animal rabbit, World world) {
         Location holeLocation = this.getLocation(world);
-    
+
         // If the rabbit hole tile is empty, place the rabbit there
         if (world.isTileEmpty(holeLocation)) {
             this.animalLeave(rabbit); // Remove the rabbit from the hole
@@ -77,17 +93,7 @@ public class RabbitHole extends NonBlockable {
             world.setTile(tiles.iterator().next(), rabbit); // Place the rabbit on a nearby tile
         }
     }
-    
 
-    /**
-     * Constructor to create a hole that is a part of a hole network
-     * @param holes the hole network
-     */
-    public RabbitHole(Set<RabbitHole> holes) {
-        this.connectedHoles = new HashSet<>(holes);
-        this.inhabitants = new HashSet<>();
-        this.connectedHoles.add(this);
-    }
 
     /**
      * Method to connect a hole to the hole network
