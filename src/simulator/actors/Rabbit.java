@@ -4,12 +4,12 @@ import itumulator.world.Location;
 import itumulator.world.World;
 import java.util.Random;
 import java.util.Set;
+
 import simulator.objects.Grass;
 import simulator.objects.NonBlockable;
 import simulator.objects.RabbitHole;
 import simulator.util.PathFinder;
 import simulator.util.Utilities;
-
 
 public class Rabbit extends Animal {
 
@@ -139,7 +139,17 @@ public class Rabbit extends Animal {
         this.assignHole(rabbitHole);
     }
 
-    @Override
+    private void searchForHole(World world) {
+        Set<Location> search = world.getSurroundingTiles(3);
+        for (Location location : search) {
+            if (world.containsNonBlocking(location) && world.getNonBlocking(location) instanceof RabbitHole hole) {
+                this.assignedHole = hole;
+                this.goHole(world);
+            }
+        }
+    }
+
+@Override
 public void act(World world) {
     if (world.isNight()) {
         // Nighttime behavior
@@ -157,25 +167,36 @@ public void act(World world) {
         if (this.isInHole() && !this.hasAttemptetToReproduce) {
             this.reproduce(world);
         }
-
     } else {
         // Daytime behavior
         this.actDuringDay(world); // Simplified daytime logic
     }
+        if( !this.isInHole() ) {
+            this.eat(world); // Try to eat
 
-    // General actions
-    if (!this.isInHole()) {
-        this.eat(world); // Try to eat if not in a hole
-    }
+            // Bad practice by using instanceof, we have disapointed Claus, but this will have to do for now
+            // Potential fix would be keeping a separate list containing all rabbit holes in the world
+            Location currentLocation = world.getLocation(this);
+            if(world.containsNonBlocking(currentLocation)) {
+                NonBlockable nonBlock = (NonBlockable)world.getNonBlocking(world.getLocation(this));
+                if(nonBlock instanceof RabbitHole rabbitHole) {
+                    this.assignHole(rabbitHole);
+                }
+            }
+        }
 
-    // End of day logic: aging, energy loss, and reset
-    if (world.getCurrentTime() == 0) {
-        this.decreaseEnergy(this.getAge() + (this.hasEatenToday ? 0 : 10), world);
-        this.resetHunger();
-        this.hasAttemptetToReproduce = false;
-        System.out.println("Energy levels end of day: " + this.getEnergy());
+        // End of day logic:a ging, energy loss, and reset
+        // Lose amount of energy corresponding to the rabbits age
+        // As the rabbit ages, it loses energy faster
+        // Lose 10 extra if the rabbit hasn't eaten at all today
+        if(world.getCurrentTime() == 0) {
+            // Decrease energy also causes aging
+            this.decreaseEnergy(this.getAge() + (this.hasEatenToday ? 0 : 10), world); 
+            this.resetHunger();
+            //System.out.println("Energy levels end of day: " + this.getEnergy());
+            hasAttemptetToReproduce = false;
+        }
     }
-}
 
 
     // TODO
@@ -188,10 +209,9 @@ public void act(World world) {
 
         // Has not eaten today, actively search for food
         if(!this.hasEatenToday) {
-            System.out.println("Has not eaten today");
+
             if(!this.pathFinder.hasPath() || 
             !Utilities.locationContainsNonBlockingType(world, this.pathFinder.getFinalLocationInPath(), Grass.class)) {
-                System.out.println("Looking for new grass(path)");
                 this.pathFinder.setLocation(currentLocation);
                 this.pathFinder.findPathToNearest(Grass.class, world);
             }
@@ -211,6 +231,13 @@ public void act(World world) {
                 this.pathFinder.clearPath();
             }
         }
+    }
+
+    // ONLY USED FOR UNIT TEST
+    // DON'T USE OTHERWISE
+    public void setPathTo(World world, Location location) {
+        this.pathFinder.setLocation(world.getLocation(this));
+        this.pathFinder.findPathToLocation(location, world);
     }
 
 }

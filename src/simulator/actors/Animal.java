@@ -7,19 +7,31 @@ import java.util.Set;
 import java.util.ArrayList;
 import java.util.Random;
 
+import simulator.objects.NonBlockable;
+import simulator.util.PathFinder;
+
 public abstract class Animal implements Actor {
+
     private int energy;
     final int maxEnergy;
+
     final int maxAge;
     private int age;
+
     protected boolean hasEatenToday;
 
-    public Animal(int startEnergy, int maxAge) {
+    private Class<? extends NonBlockable> foodType;
+    protected PathFinder pathFinder;
+
+    public Animal(int startEnergy, int maxAge, Class<? extends NonBlockable> foodType) {
         this.energy = startEnergy;
         this.maxEnergy = startEnergy;
         this.age = 0;
         this.hasEatenToday = false;
         this.maxAge = maxAge;
+        this.foodType = foodType;
+
+        this.pathFinder = new PathFinder(null);
     }
 
     // NOTE: Current implementation of WorldLoader cannot handle constructor arguments.
@@ -87,12 +99,28 @@ public abstract class Animal implements Actor {
         decreaseEnergy(1, world); // Lose energy per "step"
     }
 
-    public void resetHunger() {
+    protected void resetHunger() {
         this.hasEatenToday = false;
+    }
+
+    public void ate() {
+        this.hasEatenToday = true;
     }
 
     protected int getAge() {
         return this.age;
+    }
+
+    // Currently unsused
+    // Actively hunt for food, tries to find nearest food
+    protected void activeHunt(World world) {
+        Location currentLocation = world.getLocation(this);
+        this.pathFinder.setLocation(currentLocation);
+        this.pathFinder.findPathToNearest(this.foodType, world);
+    }
+
+    public final PathFinder getPathFinder() {
+        return this.pathFinder;
     }
 
 }

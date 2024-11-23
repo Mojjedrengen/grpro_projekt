@@ -1,16 +1,14 @@
 package simulator.util;
 
-import java.util.Queue;
-import java.util.LinkedList;
-import java.util.HashMap;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.function.*;
-
 import itumulator.world.Location;
 import itumulator.world.World;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.ArrayList;
+import java.util.Queue;
+import java.util.function.*;
 
-//import simulator.util.Utilities;
+import simulator.util.Utilities;
 
 public class PathFinder {
 
@@ -18,7 +16,7 @@ public class PathFinder {
     private Location currentLocation;
 
     public PathFinder(Location currentLocation) {
-        this.path = new LinkedList<Location>();
+        this.path = new LinkedList<>();
         this.currentLocation = currentLocation;
     }
 
@@ -53,7 +51,6 @@ public class PathFinder {
     }
 
     public boolean isPathStillValid(World world) {
-
         for(Location loc : this.path) {
             if(!world.isTileEmpty(loc)) return false;
         }
@@ -93,8 +90,8 @@ public class PathFinder {
         pathBuilder.add(end);
 
         Location startLocation = this.currentLocation;
-        while( !map.get(pathBuilder.getLast()).equals(startLocation) )  {
-            pathBuilder.add( map.get( pathBuilder.getLast() ));
+        while( !map.get(Utilities.getLast(pathBuilder) ).equals(startLocation) )  {
+            pathBuilder.add( map.get( Utilities.getLast(pathBuilder) ));
         }
 
         for(int i = pathBuilder.size() - 1; i >= 0; i--) {
@@ -149,6 +146,19 @@ public class PathFinder {
     public boolean isFinalLocationInPath(Location location) {
         if( this.path.getLast().equals(location) ) return true;
         return false;
+    }
+
+    /**
+     * Returns final location in path
+     *
+     * @return final location in path
+     */
+    public Location getFinalLocationInPath() {
+        return this.path.getLast();
+    }
+
+    public void clearPath() {
+        this.path.clear();
     }
 
 }

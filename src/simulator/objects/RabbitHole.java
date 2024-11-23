@@ -2,10 +2,13 @@ package simulator.objects;
 
 import itumulator.world.Location;
 import itumulator.world.World;
-import simulator.actors.Animal;
-
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Random;
 import java.util.Set;
+import simulator.actors.Animal;
+import simulator.actors.Rabbit;
+
 
 /**
  * A hole that rabbits can go into during the night
@@ -22,11 +25,6 @@ public class RabbitHole extends NonBlockable {
         this.connectedHoles = new HashSet<>();
         this.inhabitants = new HashSet<>();
         this.connectedHoles.add(this);
-    }
-
-    @Override
-    public void act(World world) {
-
     }
 
     /**
@@ -49,6 +47,53 @@ public class RabbitHole extends NonBlockable {
         this.inhabitants = new HashSet<>();
         this.connectedHoles.add(this);
     }
+
+    /**
+     * Method for the rabbit to reproduce inside the rabbit hole
+     * @param world the current world
+     */
+    public void reproduceInhabitants(World world) {
+        Random random = new Random();
+        Set<Animal> offSpringSet = new HashSet<>();
+        for (Animal animal : this.inhabitants) {
+            // Ensure there are at least two animals to reproduce
+            if (this.inhabitants.size() > 1 && random.nextInt(20) == 4 && offSpringSet.size() < this.inhabitants.size()/2) {
+                Animal offspring = new Rabbit(this); // Creates a new Rabbit
+                offSpringSet.add(offspring); // Adds the offspring to the rabbit hole
+            }
+        }
+        if (!offSpringSet.isEmpty()) {
+            for (Animal offSpring : offSpringSet) {
+                this.animalEnters(offSpring);
+                world.add(offSpring);
+            }
+        }
+    }
+
+    /**
+     * Method for when a rabbit leave the hole network
+     * @param rabbit the rabbit that leaves the hole
+     * @param world the current world
+     */
+    public void exitRabbit(Animal rabbit, World world) {
+        Location holeLocation = this.getLocation(world);
+
+        // If the rabbit hole tile is empty, place the rabbit there
+        if (world.isTileEmpty(holeLocation)) {
+            this.animalLeave(rabbit); // Remove the rabbit from the hole
+            world.setTile(holeLocation, rabbit); // Place the rabbit on the tile
+        } else {
+            // If the rabbit hole is blocked, place the rabbit on a surrounding empty tile
+            Set<Location> tiles = world.getEmptySurroundingTiles(holeLocation);
+            if (tiles.isEmpty()) {
+                // Rabbit can't exit, everything is blocked
+                return;
+            }
+            this.animalLeave(rabbit); // Remove the rabbit from the hole
+            world.setTile(tiles.iterator().next(), rabbit); // Place the rabbit on a nearby tile
+        }
+    }
+
 
     /**
      * Method to connect a hole to the hole network
@@ -134,9 +179,12 @@ public class RabbitHole extends NonBlockable {
      * @param world the current world
      */
     public void destroyHole(World world) {
-        for (RabbitHole hole : this.connectedHoles) {
+        Iterator<RabbitHole> it = this.connectedHoles.iterator();
+
+        while (it.hasNext()) {
+            RabbitHole hole = it.next();
             if (hole.equals(this)) {continue;}
-            hole.disconnectHole(this);
+            it.remove();
         }
         this.connectedHoles = null;
         this.inhabitants = null;
