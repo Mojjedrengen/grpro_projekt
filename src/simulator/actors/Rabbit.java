@@ -11,10 +11,6 @@ import simulator.objects.RabbitHole;
 import simulator.util.PathFinder;
 import simulator.util.Utilities;
 
-import java.util.Random;
-import java.util.Set;
-
-
 public class Rabbit extends Animal {
 
     private RabbitHole assignedHole; // The hole assigned to this rabbit
@@ -46,8 +42,7 @@ public class Rabbit extends Animal {
     }
 
     public boolean isInHole() {
-        if(this.assignedHole == null) return false;
-        return this.assignedHole.getInhabitants().contains(this);
+        return assignedHole != null && assignedHole.getInhabitants().contains(this);
     }
 
     @Override
@@ -63,12 +58,8 @@ public class Rabbit extends Animal {
 
     // Move towards the assigned hole
     public void goHole(World world) {
-        if (!hasHole()) { //Checks if rabit has a hole to return to
-            return;
-        }else if( assignedHole.getInhabitants().contains(this) ) {
-            // Rabbit is already in its hole
-            return;
-        }
+        if (!hasHole() || isInHole()) return; //Returns if it meets any of the two conditions
+
 
         Location currentLocation = world.getLocation(this);
         Location rabbitHoleLocation = assignedHole.getLocation(world);
@@ -111,6 +102,29 @@ public class Rabbit extends Animal {
         }
     }
 
+    private void searchForNearbyHoles(World world) {
+        Set<Location> search = world.getSurroundingTiles(3);
+        for (Location location : search) {
+            if (world.containsNonBlocking(location) && world.getNonBlocking(location) instanceof RabbitHole hole) {
+                this.assignHole(hole);
+                this.goHole(world);
+                break;
+            }
+        }
+    }
+    
+    private void actDuringDay(World world) {
+        if (isInHole()) {
+            exitHole(world);
+        } else if (this.pathFinder.hasPath()) {
+            Location nextStep = this.pathFinder.getPath().poll();
+            if (world.isTileEmpty(nextStep)) world.move(this, nextStep);
+        } else {
+            this.wander(world);
+        }
+    }
+    
+
     private void tryToMakeHole(World world) {
 
         Location currentLocation = world.getLocation(this);
@@ -135,32 +149,28 @@ public class Rabbit extends Animal {
         }
     }
 
-    @Override
-    public void act(World world) {
-        // Rabbit-specific behavior
-        if(world.isNight()) {
-            if(this.hasHole()) this.goHole(world); // Try moving towards its hole if it has one
-            else if (world.isOnTile(this)) {
-                this.searchForHole(world);
+@Override
+public void act(World world) {
+    if (world.isNight()) {
+        // Nighttime behavior
+        if (this.hasHole()) {
+            this.goHole(world); // Move towards the assigned hole
+        } else {
+            this.searchForNearbyHoles(world); // Search for nearby holes
+            if (!this.hasHole()) {
+                this.tryToMakeHole(world); // Try to make a new hole
+                if (!this.hasHole()) this.wander(world); // Wander if no hole found
             }
-            if(this.isInHole()) {
-                if (!hasAttemptetToReproduce){
-                    this.reproduce(world);
-                }
-            }else if (!this.hasHole()){
-                this.tryToMakeHole(world);
-                if(!this.hasHole()) this.wander(world);
-            }
-        }else if( this.isInHole() && world.isDay() ) {
-            // Try to exit hole since it's day again
-            this.exitHole(world);
-        } else if(this.pathFinder.hasPath()) { // If a path exists in the rabbits pathfinding, simply follow that
-            Location nextStep = this.pathFinder.getPath().poll();
-            if(world.isTileEmpty(nextStep)) world.move(this, nextStep);
-        }else {
-            this.wander(world); // Wander randomly if no path in pathFinder
         }
 
+        // Reproduce if in a hole and hasn't attempted yet
+        if (this.isInHole() && !this.hasAttemptetToReproduce) {
+            this.reproduce(world);
+        }
+    } else {
+        // Daytime behavior
+        this.actDuringDay(world); // Simplified daytime logic
+    }
         if( !this.isInHole() ) {
             this.eat(world); // Try to eat
 
@@ -175,6 +185,7 @@ public class Rabbit extends Animal {
             }
         }
 
+        // End of day logic:a ging, energy loss, and reset
         // Lose amount of energy corresponding to the rabbits age
         // As the rabbit ages, it loses energy faster
         // Lose 10 extra if the rabbit hasn't eaten at all today
@@ -182,11 +193,11 @@ public class Rabbit extends Animal {
             // Decrease energy also causes aging
             this.decreaseEnergy(this.getAge() + (this.hasEatenToday ? 0 : 10), world); 
             this.resetHunger();
-            System.out.println("Energy levels end of day: " + this.getEnergy());
+            //System.out.println("Energy levels end of day: " + this.getEnergy());
             hasAttemptetToReproduce = false;
         }
-
     }
+
 
     // TODO
     // Move to animal abstract class since every animal has the small behaviour in this regard.
@@ -198,6 +209,7 @@ public class Rabbit extends Animal {
 
         // Has not eaten today, actively search for food
         if(!this.hasEatenToday) {
+
             if(!this.pathFinder.hasPath() || 
             !Utilities.locationContainsNonBlockingType(world, this.pathFinder.getFinalLocationInPath(), Grass.class)) {
                 this.pathFinder.setLocation(currentLocation);
