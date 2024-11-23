@@ -1,19 +1,46 @@
 package simulator.actors;
 
+import itumulator.executable.DisplayInformation;
+import itumulator.executable.DynamicDisplayInformationProvider;
 import itumulator.world.Location;
 import itumulator.world.World;
 import java.util.Random;
 import java.util.Set;
 
+import java.awt.Color;
 import simulator.objects.Grass;
 import simulator.objects.NonBlockable;
 import simulator.objects.RabbitHole;
 import simulator.util.PathFinder;
 import simulator.util.Utilities;
 
-public class Rabbit extends Animal {
+/**
+ * This class represents a rabbit, here's what rabbits do from day to night:
+ * - Rabbits will at the start off the day actively search for a patch of grass
+ * - After eating one patch of grass, they'll randomly wander around
+ * - Should rabbit randomly step on tile of grass, then they'll eat it
+ * - Once night time arrives rabbits will do the following given it has no assigned rabbit hole:
+ *      - Search for rabbit holes
+ *      - Attempt to create rabbit hole with 5% success rate
+ * - Given that it has a rabbit hole or just created one:
+ *      - Enter rabbit hole
+ *      - If inside rabbit hole with another rabbit, attempt to reproduce once with a 1/20 chance of success
+ *
+ * - Once a day ends, rabbits will age and lose energy.
+ *   At the age of 3, their image will be swapped out with a large rabbit
+ *   How much energy they lose depends on their age, the older, the faster they lose energy.
+ *   If a rabbit hasn't eaten at all in a certain day, then they'll lose a large amount of energy.
+ *   The oldest a rabbit can get is 9(they'll instantly die the day they hit 10)
+ */
+public class Rabbit extends Animal implements DynamicDisplayInformationProvider {
+
+    // Images for rabbits. Rather than creating a new instance of DisplayInformation every
+    // time getInformation() is called, the method simply returns one of these two.
+    static DisplayInformation largeRabbit = new DisplayInformation(Color.red, "rabbit-large");
+    static DisplayInformation smallRabbit = new DisplayInformation(Color.red, "rabbit-small");
 
     private RabbitHole assignedHole; // The hole assigned to this rabbit
+    // Rabbit only attempts to reprodouce once per night, this keeps track of wheter it has or hasn't
     private boolean hasAttemptetToReproduce;
 
 
@@ -39,6 +66,12 @@ public class Rabbit extends Animal {
         return assignedHole != null;
     }
 
+    /**
+     * Determines if rabbit currently finds itself inside a rabbit hole.
+     * This method will also return false if rabbit has no rabbit hole
+     *
+     * @return Whether if rabbit is currently in hole or not
+     */
     public boolean isInHole() {
         return assignedHole != null && assignedHole.getInhabitants().contains(this);
     }
@@ -94,12 +127,19 @@ public class Rabbit extends Animal {
         }
     }
 
+    /**
+     * Rabbit exists hole
+     */
     private void exitHole(World world) {
         if (this.assignedHole != null) {
             this.assignedHole.exitRabbit(this, world);
         }
     }
 
+    /**
+     * Rabbit searches for nearby rabbit holes with a search radius of 3
+     * If it finds one, it assigns itself to the hole and goes to it
+     */
     private void searchForNearbyHoles(World world) {
         Set<Location> search = world.getSurroundingTiles(3);
         for (Location location : search) {
@@ -111,18 +151,29 @@ public class Rabbit extends Animal {
         }
     }
     
+    /**
+     * Rabbit day behaviour.
+     */
     private void actDuringDay(World world) {
+        // Exit hole if in one(since it's day time)
         if (isInHole()) {
             exitHole(world);
         } else if (this.pathFinder.hasPath()) {
+            // If it has a path in the path finder, e.g.
+            // path to nearest patch of grass, then follow that.
             Location nextStep = this.pathFinder.getPath().poll();
             if (world.isTileEmpty(nextStep)) world.move(this, nextStep);
         } else {
+            // Otherwise, wander randomly
             this.wander(world);
         }
     }
     
 
+    /**
+     * 5% chance for rabiit to create a hole on the tile it's currently standing on.
+     * If current tile already contains nonblocking, then this method simply returns
+     */
     private void tryToMakeHole(World world) {
 
         Location currentLocation = world.getLocation(this);
@@ -135,16 +186,6 @@ public class Rabbit extends Animal {
         RabbitHole rabbitHole = new RabbitHole();
         world.setTile(currentLocation, rabbitHole);
         this.assignHole(rabbitHole);
-    }
-
-    private void searchForHole(World world) {
-        Set<Location> search = world.getSurroundingTiles(3);
-        for (Location location : search) {
-            if (world.containsNonBlocking(location) && world.getNonBlocking(location) instanceof RabbitHole hole) {
-                this.assignedHole = hole;
-                this.goHole(world);
-            }
-        }
     }
 
 @Override
@@ -200,6 +241,12 @@ public void act(World world) {
     // TODO
     // Move to animal abstract class since every animal has the small behaviour in this regard.
     // The only different thing is the type of food, which can be specificed with Class<T> type.
+    /**
+     * If animal hasn't eaten at all today, then it finds the path to the nearest food source.
+     * If it's standing on top of food, then it'll eat it.
+     *
+     * @param world - reference to the world
+     */
     @Override
     public void eat(World world) {
 
@@ -231,12 +278,12 @@ public void act(World world) {
         }
     }
 
-    // ONLY USED FOR UNIT TEST
-    // DON'T USE OTHERWISE
-    public void setPathTo(World world, Location location) {
-        this.pathFinder.setLocation(world.getLocation(this));
-        this.pathFinder.findPathToLocation(location, world);
+    @Override
+    public DisplayInformation getInformation() {
+        if (age > 2) return Rabbit.largeRabbit;
+        return Rabbit.smallRabbit;
     }
+
 
 }
 

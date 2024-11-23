@@ -7,6 +7,7 @@ import java.util.LinkedList;
 import java.util.ArrayList;
 import java.util.Queue;
 import java.util.function.*;
+import java.util.Iterator;
 
 import simulator.util.Utilities;
 
@@ -15,6 +16,11 @@ public class PathFinder {
     private LinkedList<Location> path;
     private Location currentLocation;
 
+    /**
+     * PathFinder constructor
+     *
+     * @param currentLocation - starting point from which path finding will be made from. May be null if location is later set with setLocation()
+     */
     public PathFinder(Location currentLocation) {
         this.path = new LinkedList<>();
         this.currentLocation = currentLocation;
@@ -50,6 +56,15 @@ public class PathFinder {
         }, world);
     }
 
+    /**
+     * Valdiates that the entire route is not obstructed.
+     * Note that this can drastically change as other animals step in and out of the path.
+     * Therefore, it is not worth file re-generating a new path simply because this returns false, as
+     * the path can quickly become valid again after a single time step.
+     *
+     * @param world - Reference to the world
+     * @return whether if the entire path is not obstructed
+     */
     public boolean isPathStillValid(World world) {
         for(Location loc : this.path) {
             if(!world.isTileEmpty(loc)) return false;
@@ -58,21 +73,71 @@ public class PathFinder {
         return true;
     }
 
+    /**
+     * Checks whether if the current path isn't empty
+     *
+     * @return if the path is not empty
+     */
     public boolean hasPath() {
         return !this.path.isEmpty();
     }
 
-    public void fixObstructedPath(World world) {
+    // TODO not finished
+    public boolean fixObstructedPath(World world) {
 
-        // Find obstruction
-        //Location obstructionStart = null, obstructionEnd = null;
+        if(this.path.isEmpty()) return false;
+        else if(this.currentLocation == null) return false;
 
+        Iterator<Location> iter = this.path.iterator();
+
+        // Hack to get around Javas rule that prevents mutation of primitives in lambdas
+        // Who cares? This isn't Haskell
+        int[] indexWrapper = {0};
+
+        BiFunction<Iterator<Location>, Function<Location, Boolean>, Integer> findObstruction = (it, cond) -> {
+            Location location = this.currentLocation;
+            while(it.hasNext()) {
+                location = it.next();
+                if(cond.apply(location)) {
+                    return indexWrapper[0];
+                }
+                indexWrapper[0]++;
+            }
+            return -1;
+        };
+
+        final Location previousCurrent = this.currentLocation;
+        int start = findObstruction.apply(iter, (l) -> { return !world.isTileEmpty(l); });
+
+        this.currentLocation = this.path.get(start);
+        int end = findObstruction.apply(iter, (l) -> { return world.isTileEmpty(l); });
+
+        if(start <= 0 || end == -1 || start == end) return false;
+        start -= 1;
+        end += 1;
+
+        this.setLocation(this.path.get(start));
+
+        final boolean result = this.findPathToLocation(this.path.get(end), world);
+        this.setLocation(previousCurrent);
+        return result;
     }
 
+    /**
+     * Returns the current path created by the path finder as a queue
+     *
+     * @return the current path as queue
+     */
     public Queue<Location> getPath() {
         return (Queue<Location>)this.path;
     }
 
+    /**
+     * Sets the current location of the PathFinder.
+     * The current location is used by the path finder as the starting location
+     *
+     * @param location - current location or starting location of path finder
+     */
     public void setLocation(Location location) {
         this.currentLocation = location;
     }
@@ -95,7 +160,7 @@ public class PathFinder {
         }
 
         for(int i = pathBuilder.size() - 1; i >= 0; i--) {
-//            System.out.println(pathBuilder.get(i));
+            //            System.out.println(pathBuilder.get(i));
             this.path.add(pathBuilder.get(i));
         }
 
@@ -111,17 +176,23 @@ public class PathFinder {
      */
     private boolean findPath(Function<Location, Boolean> condition, World world) {
         this.path.clear();
+        // No starting point is set
+        if(this.currentLocation == null) return false;
 
+        // Queue contains the next location to visit
         Queue<Location> queue = new LinkedList<>();
+        // pathTracer is used for two things:
+        // 1. to keep track of how the BFS algorithm reached each location, which can then be used to re-construct the path
+        // 2. it is used as a visited set to prevent cycles
         HashMap<Location, Location> pathTracer = new HashMap<>();
 
         queue.add(this.currentLocation);
         while(!queue.isEmpty()) {
             Location focusedLocation = queue.poll();
 
-            // Goal is found, now re-trace the path taken
-            //if(Utilities.locationEquals(focusedLocation, goal)) {
+            // condition is a lambda function that checks if the focused location is the goal
             if(condition.apply(focusedLocation)) {
+                // Goal is found, now re-trace the path taken
                 this.traceRoute(pathTracer, focusedLocation);
                 return true;
             }
@@ -157,6 +228,9 @@ public class PathFinder {
         return this.path.getLast();
     }
 
+    /**
+     * Simply resets the path and deletes every location in the path
+     */
     public void clearPath() {
         this.path.clear();
     }

@@ -8,21 +8,30 @@ import java.util.ArrayList;
 import java.util.Random;
 
 import simulator.objects.NonBlockable;
+import simulator.objects.Grass;
 import simulator.util.PathFinder;
+
 
 public abstract class Animal implements Actor {
 
     private int energy;
     final int maxEnergy;
 
+    protected int age;
     final int maxAge;
-    private int age;
 
     protected boolean hasEatenToday;
 
     private Class<? extends NonBlockable> foodType;
     protected PathFinder pathFinder;
 
+    /**
+     * Animal constructor
+     *
+     * @param startEnergy - how much energy an animal has to start off with. This will also be the max energy for that animal
+     * @param maxAge - the oldest an animal can get before dying
+     * @param foodType - what type of food does the animal eat
+     */
     public Animal(int startEnergy, int maxAge, Class<? extends NonBlockable> foodType) {
         this.energy = startEnergy;
         this.maxEnergy = startEnergy;
@@ -34,35 +43,52 @@ public abstract class Animal implements Actor {
         this.pathFinder = new PathFinder(null);
     }
 
-    // NOTE: Current implementation of WorldLoader cannot handle constructor arguments.
-    // Will be fixed soon. For the meanwhile, give default energy levels to all animals
-    // and have a constructor with no arguments
+    /**
+     * Animal constructor defaults to 100 energy, max age of 10 and grass as its food type
+     */
     public Animal() {
-        this.energy = 100;
-        this.age = 0;
-        this.maxEnergy = this.energy;
-        this.maxAge = 10;
+        this(100, 10, Grass.class);
     }
 
-    // Getter
+    /**
+     * Returns the animal's current energy level
+     *
+     * @return energy level of animal
+     */
     public int getEnergy() {
         return energy;
     }
 
-    // Increase energy
+    /**
+     * Increase animals energy.
+     * If final amount of energy is higher than the animals max energy, then the animal is simply left with its max energy
+     *
+     * @param amount - the amount of energy the animal gains
+     */
     public void increaseEnergy(int amount) {
         this.energy = Math.min(this.energy + amount, this.maxEnergy);
     }
 
-    // Decreases energy
+    /**
+     * Decrese energy and age animal.
+     * If energy drops to 0 or if the animal's age exceeds its max age, then it dies
+     *
+     * @param amount - the amount of energy the animal loses
+     * @param world - reference to the world
+     */
     public void decreaseEnergy(int amount, World world) {
         this.energy -= amount;
         age++;
-        if (this.energy <= 0) {
+        if (this.energy <= 0 || age > this.maxAge) {
             killAnimal(world);
         }
     }
 
+    /*
+     * Kills the animal and deletes it from the world
+     *
+     * @param world - reference to the world
+     */
     public void killAnimal(World world) {
         if(world != null) {
             //world.remove(this);
@@ -71,7 +97,12 @@ public abstract class Animal implements Actor {
         }
     }
 
-    // Wander behaviour
+    /**
+     * Random wander behaviour.
+     * Animal picks an empty sorrounding tile and goes there.
+     *
+     * @param world - reference to the world
+     */
     protected void wander(World world) {
         Location currentLocation = world.getLocation(this);
         Set<Location> emptyTiles = world.getEmptySurroundingTiles(currentLocation);
@@ -81,17 +112,30 @@ public abstract class Animal implements Actor {
         }
     }
 
-    // Eating behavior, to be overwritten
+    /**
+     * Animal eating logic. To be overwritten
+     *
+     * @param world - reference to the world
+     */
     public void eat(World world) {
 
     }
 
-    // Reproduction behavior, to be overwritten
+    /**
+     * Animal reproduction logic. To be overwritten
+     *
+     * @param world - reference to the world
+     */
     public void reproduce(World world) {
 
     }
 
-    //to be overwritten
+    /**
+     * Animal acting logic. To be overwritten
+     *
+     * @param world - reference to the world
+     */
+    @Override
     public void act(World world) {
         eat(world);      // Eat to regain energy
         wander(world);   // Move to a random nearby tile
@@ -99,14 +143,25 @@ public abstract class Animal implements Actor {
         decreaseEnergy(1, world); // Lose energy per "step"
     }
 
+    /**
+     * Resets the animal's has eaten today boolean to false
+     */
     protected void resetHunger() {
         this.hasEatenToday = false;
     }
 
+    /**
+     * Sets the animal's has eaten today boolean to true
+     */
     public void ate() {
         this.hasEatenToday = true;
     }
 
+    /**
+     * Returns the animals current age 
+     *
+     * @return current age of animal
+     */
     protected int getAge() {
         return this.age;
     }
@@ -119,6 +174,11 @@ public abstract class Animal implements Actor {
         this.pathFinder.findPathToNearest(this.foodType, world);
     }
 
+    /**
+     * Gets a reference to the PathFinder that the animal is using
+     *
+     * @return reference to animal's PathFinder
+     */
     public final PathFinder getPathFinder() {
         return this.pathFinder;
     }
