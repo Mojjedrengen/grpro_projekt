@@ -76,14 +76,29 @@ public class WorldLoader {
         scanner.close();
     }
 
+    /**
+     * Gets the world size parsed from the input file
+     *
+     * @return world size
+     */
     public int getWorldSize() {
         return this.worldSize;
     }
 
+    /**
+     * Gets the list of animals parsed from the input file
+     *
+     * @return list of animals 
+     */
     public List<Animal> getAnimals() {
         return this.animals;
     }
 
+    /**
+     * Gets the list of NonBlockables parsed from the input file
+     *
+     * @return list of NonBlockables 
+     */
     public List<NonBlockable> getNonBlockables() {
         return this.nonblockables;
     }

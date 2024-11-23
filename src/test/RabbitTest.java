@@ -15,6 +15,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
+// Unit test for the Rabbit class
 public class RabbitTest {
 
     World w;
@@ -24,6 +25,9 @@ public class RabbitTest {
         this.w = new World(5);
     }
 
+    /**
+     * Test that the rabbit actually moves around
+     */
     @Test
     public void wanderTest() {
         this.w.setDay();
@@ -38,6 +42,9 @@ public class RabbitTest {
         assertFalse(startingLocation.equals(locationAfterAct));
     }
 
+    /**
+     * Test that rabbit follows the path in its pathfinding, if there is one
+     */
     @Test
     public void followsPathFinderPathTest() {
         Rabbit r = new Rabbit();
@@ -53,7 +60,10 @@ public class RabbitTest {
 
         this.w.setCurrentLocation(startingLocation);
         this.w.setTile(startingLocation, r);
-        r.setPathTo(w, goalLocation);
+        PathFinder pf = r.getPathFinder();
+        pf.setLocation(startingLocation);
+        pf.findPathToLocation(goalLocation, this.w);
+
         // Take 4 steps
         r.act(this.w);
         r.act(this.w);
@@ -63,7 +73,9 @@ public class RabbitTest {
         assertTrue( this.w.getLocation(r).equals(goalLocation) );
     }
 
-    // If rabbit hasn't eaten yet, it will actively hunt for food
+    /**
+     * If rabbit hasn't eaten yet, it should actively search for food
+     */
     @Test
     public void seeksFoodTest() {
         this.w.step();
@@ -82,6 +94,9 @@ public class RabbitTest {
 
     }
 
+    /**
+     * Once it's night time, rabbit should return to its assigned hole if it has one
+     */
     @Test
     public void seeksRabbitHoleAtNightTest() {
         Rabbit r = new Rabbit();
@@ -106,6 +121,9 @@ public class RabbitTest {
 
     }
 
+    /**
+     * Rabbit should eat grass and the grass should disappear afterwards
+     */
     @Test
     public void rabbitEatsTest() {
         this.w.step();
@@ -122,9 +140,11 @@ public class RabbitTest {
         r.act(this.w);
 
         assertFalse(this.w.containsNonBlocking(location));
-
     }
 
+    /**
+     * Given enough chances, a rabbit should reprodouce if it finds itself inside a rabbit hole with another rabbit
+     */
     @Test
     public void rabbitReproductionTest() {
         this.w.setNight();
