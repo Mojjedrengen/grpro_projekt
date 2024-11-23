@@ -14,7 +14,6 @@ import simulator.util.Utilities;
 public class Rabbit extends Animal {
 
     private RabbitHole assignedHole; // The hole assigned to this rabbit
-    private PathFinder pathFinder;
     private boolean hasAttemptetToReproduce;
 
 
@@ -22,7 +21,6 @@ public class Rabbit extends Animal {
         super(20, 9, Grass.class); // Call the Animal superclass constructor
         this.assignedHole = null; // No hole assigned initially
         // PathFinder expects starting location, setting to null for now
-        this.pathFinder = new PathFinder(null);
         this.hasAttemptetToReproduce = false;
     }
 

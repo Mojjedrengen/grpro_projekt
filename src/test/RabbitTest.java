@@ -76,13 +76,9 @@ public class RabbitTest {
         Location grassLocation = new Location(4,4);
         this.w.setTile(grassLocation, grass);
 
-        // Rabbit must move 4 steps to reach tile with grass
-        r.act(w);
-        r.act(w);
-        r.act(w);
         r.act(w);
 
-        assertTrue( this.w.getLocation(r).equals(grassLocation) );
+        assertTrue( r.getPathFinder().getFinalLocationInPath().equals(grassLocation) );
 
     }
 
