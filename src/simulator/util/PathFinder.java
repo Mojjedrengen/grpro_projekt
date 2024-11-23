@@ -11,6 +11,11 @@ import java.util.Iterator;
 
 import simulator.util.Utilities;
 
+/**
+ * The PathFinder class can be used by animals to generate paths between two
+ * points. This could for example be a rabbit trying to find the shortest route
+ * to its own rabbit hole when it turns night.
+ */
 public class PathFinder {
 
     private LinkedList<Location> path;

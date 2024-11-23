@@ -11,7 +11,11 @@ import simulator.objects.NonBlockable;
 import simulator.objects.Grass;
 import simulator.util.PathFinder;
 
-
+/**
+ * Animal is an abstract class that all animals inherit from.
+ * It contains some of the default animal behaviour and every method that
+ * every animal has in common.
+ */
 public abstract class Animal implements Actor {
 
     private int energy;

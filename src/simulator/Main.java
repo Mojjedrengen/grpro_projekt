@@ -14,6 +14,9 @@ import simulator.util.WorldLoader;
 import simulator.actors.*;
 import simulator.objects.*;
 
+/**
+ * Main entry point of the program
+ */
 public class Main {
 
     public static void main(String[] args) {

@@ -13,7 +13,8 @@ import java.util.Random;
 import java.util.Set;
 
 /**
- * Class to create grass
+ * Class to create grass. Grass can spread own its own and has different stages it goes through as it is growing.
+ * Certain animals can eat grass to regain energy.
  * @author Moto
  */
 public class Grass extends NonBlockable implements DynamicDisplayInformationProvider, Actor {

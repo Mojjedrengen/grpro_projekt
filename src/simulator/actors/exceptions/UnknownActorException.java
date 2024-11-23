@@ -1,5 +1,10 @@
 package simulator.actors.exceptions;
 
+/**
+ * Currently unsused exception.
+ *
+ * Used to show that the dynamic type of a certain animal(actor) could not be resolved 
+ */
 public class UnknownActorException extends RuntimeException {
 
     private String unknownActor;

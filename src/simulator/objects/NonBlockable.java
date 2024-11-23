@@ -4,7 +4,8 @@ import itumulator.simulator.Actor;
 import itumulator.world.NonBlocking;
 
 /**
- * This class is easy to contain the non-blocking actors
+ * Every NonBlockable inherits from this class.
+ * Doesn't provide much functionality as of now
  * @author Moto
  */
 public abstract class NonBlockable implements NonBlocking {

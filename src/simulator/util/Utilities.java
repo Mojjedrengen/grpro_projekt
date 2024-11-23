@@ -7,6 +7,11 @@ import simulator.objects.NonBlockable;
 
 import java.util.ArrayList;
 
+/**
+ * The Utilities class functions more akin to a namespace rather than a class.
+ * It only contains static functions that offer functionality that is often
+ * needed throughout the program.
+ */
 public class Utilities {
 
     public static <T> T getLast(ArrayList<T> array) {

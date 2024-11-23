@@ -1,5 +1,11 @@
 package simulator.util.exceptions;
 
+/** 
+ * This exeption is thrown by the WorldLoader class in the event that there's
+ * a syntax error in the world input file. This exception exists to provide
+ * more verbose error logging. It will keep track of the line number of the
+ * syntax error and also hold onto the offending line in the input file.
+ */
 public class InvalidWorldInputFileException extends RuntimeException {
 
     private int lineNumber;

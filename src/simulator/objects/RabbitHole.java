@@ -11,7 +11,8 @@ import simulator.actors.Rabbit;
 
 
 /**
- * A hole that rabbits can go into during the night
+ * The RabbitHole class represents a rabbit hole that rabbits can enter at night.
+ * This can also be used to represent a network of connected rabbit holes.
  * @author moto
  */
 public class RabbitHole extends NonBlockable {

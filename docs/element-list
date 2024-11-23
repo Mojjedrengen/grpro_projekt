@@ -6,3 +6,9 @@ itumulator.display.utility
 itumulator.executable
 itumulator.simulator
 itumulator.world
+simulator
+simulator.actors
+simulator.actors.exceptions
+simulator.objects
+simulator.util
+simulator.util.exceptions

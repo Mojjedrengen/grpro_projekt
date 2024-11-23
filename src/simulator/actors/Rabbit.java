@@ -11,12 +11,11 @@ import java.awt.Color;
 import simulator.objects.Grass;
 import simulator.objects.NonBlockable;
 import simulator.objects.RabbitHole;
-import simulator.util.PathFinder;
 import simulator.util.Utilities;
 
 /**
  * This class represents a rabbit, here's what rabbits do from day to night:
- * - Rabbits will at the start off the day actively search for a patch of grass
+ *  Rabbits will at the start off the day actively search for a patch of grass
  * - After eating one patch of grass, they'll randomly wander around
  * - Should rabbit randomly step on tile of grass, then they'll eat it
  * - Once night time arrives rabbits will do the following given it has no assigned rabbit hole:
