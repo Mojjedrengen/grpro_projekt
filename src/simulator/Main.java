@@ -14,6 +14,7 @@ import simulator.util.WorldLoader;
 import simulator.util.exceptions.InvalidWorldInputFileException;
 import simulator.actors.*;
 import simulator.objects.*;
+import simulator.objects.holes.*;
 
 /**
  * Main entry point of the program
@@ -26,7 +27,7 @@ public class Main {
         final int delay = 200;
         WorldLoader wl = null;
         try {
-            wl = new WorldLoader("resources/inputs/week-1/coordinate_rabbit.txt", windowResolution, delay);
+            wl = new WorldLoader("resources/inputs/week-1/t1-2cde.txt", windowResolution, delay);
         }catch(InvalidWorldInputFileException e) {
             System.out.println("WorldLoader: Syntax error in input file");
             System.out.println("Line number: " + e.getLineNumber());

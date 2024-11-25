@@ -4,7 +4,7 @@ import itumulator.world.Location;
 import itumulator.world.World;
 import simulator.actors.Animal;
 import simulator.actors.Rabbit;
-import simulator.objects.RabbitHole;
+import simulator.objects.holes.RabbitHole;
 import simulator.objects.Grass;
 import simulator.util.PathFinder;
 
@@ -163,8 +163,8 @@ public class RabbitTest {
         this.w.add(r1);
         this.w.add(r2);
 
-        rh.animalEnters(r1);
-        rh.animalEnters(r2);
+        rh.rabbitEntersNetwork(r1);
+        rh.rabbitExitsNetwork(r2);
 
         for(int i = 0; i < 100; i++) {
             r1.reproduce(w);

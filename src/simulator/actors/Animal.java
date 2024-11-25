@@ -26,7 +26,7 @@ public abstract class Animal implements Actor {
 
     protected boolean hasEatenToday;
 
-    private Class<? extends NonBlockable> foodType;
+    protected Class<?> foodType;
     protected PathFinder pathFinder;
 
     /**
@@ -36,7 +36,7 @@ public abstract class Animal implements Actor {
      * @param maxAge - the oldest an animal can get before dying
      * @param foodType - what type of food does the animal eat
      */
-    public Animal(int startEnergy, int maxAge, Class<? extends NonBlockable> foodType) {
+    public Animal(int startEnergy, int maxAge, Class<?> foodType) {
         this.energy = startEnergy;
         this.maxEnergy = startEnergy;
         this.age = 0;

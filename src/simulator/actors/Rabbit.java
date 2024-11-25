@@ -10,7 +10,7 @@ import java.util.Set;
 import java.awt.Color;
 import simulator.objects.Grass;
 import simulator.objects.NonBlockable;
-import simulator.objects.RabbitHole;
+import simulator.objects.holes.RabbitHole;
 import simulator.util.Utilities;
 
 /**
@@ -94,8 +94,7 @@ public class Rabbit extends Animal implements DynamicDisplayInformationProvider 
         Location currentLocation = world.getLocation(this);
         Location rabbitHoleLocation = assignedHole.getLocation(world);
         if (currentLocation.equals(rabbitHoleLocation)) { // Rabbit enters hole
-            assignedHole.animalEnters(this);
-            world.remove(this);
+            assignedHole.enterRabbit(this, world);
             return;
         }
         //if statement to only go towards hole if it's evening time...

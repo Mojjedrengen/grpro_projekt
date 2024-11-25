@@ -7,7 +7,7 @@ import org.junit.jupiter.api.Test;
 import simulator.actors.Animal;
 import simulator.actors.Rabbit;
 import simulator.objects.NonBlockable;
-import simulator.objects.RabbitHole;
+import simulator.objects.holes.RabbitHole;
 import simulator.objects.Grass;
 import simulator.util.WorldLoader;
 

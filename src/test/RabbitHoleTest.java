@@ -6,7 +6,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import simulator.actors.Animal;
 import simulator.actors.Rabbit;
-import simulator.objects.RabbitHole;
+import simulator.objects.holes.RabbitHole;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -41,7 +41,7 @@ class RabbitHoleTest {
     @Test
     void animalEnters() {
         Animal rabbit = new Rabbit();
-        hole.animalEnters(rabbit);
+        hole.rabbitEntersNetwork(rabbit);
 
         assertEquals(1, hole.getInhabitants().size());
     }
@@ -49,10 +49,10 @@ class RabbitHoleTest {
     @Test
     void animalLeave() {
         Animal rabbit = new Rabbit();
-        hole.animalEnters(rabbit);
+        hole.rabbitEntersNetwork(rabbit);
         assertEquals(1, hole.getInhabitants().size());
 
-        hole.animalLeave(rabbit);
+        hole.rabbitExitsNetwork(rabbit);
         assertEquals(0, hole.getInhabitants().size());
     }
 

@@ -1,4 +1,4 @@
-package simulator.objects;
+package simulator.objects.holes;
 
 import itumulator.world.Location;
 import itumulator.world.World;
@@ -6,6 +6,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Random;
 import java.util.Set;
+
 import simulator.actors.Animal;
 import simulator.actors.Rabbit;
 
@@ -15,16 +16,15 @@ import simulator.actors.Rabbit;
  * This can also be used to represent a network of connected rabbit holes.
  * @author moto
  */
-public class RabbitHole extends NonBlockable {
+public class RabbitHole extends Hole {
     private Set<RabbitHole> connectedHoles;
-    private Set<Animal> inhabitants;
 
     /**
      * Constructor to create single hole
      */
     public RabbitHole() {
+        super();
         this.connectedHoles = new HashSet<>();
-        this.inhabitants = new HashSet<>();
         this.connectedHoles.add(this);
     }
 
@@ -33,8 +33,8 @@ public class RabbitHole extends NonBlockable {
      * @param hole the connected hole
      */
     public RabbitHole(RabbitHole hole) {
+        super();
         this.connectedHoles = new HashSet<>();
-        this.inhabitants = new HashSet<>();
         this.connectedHoles.add(this);
         this.connectedHoles.add(hole);
     }
@@ -44,8 +44,8 @@ public class RabbitHole extends NonBlockable {
      * @param holes the hole network
      */
     public RabbitHole(Set<RabbitHole> holes) {
+        super();
         this.connectedHoles = new HashSet<>(holes);
-        this.inhabitants = new HashSet<>();
         this.connectedHoles.add(this);
     }
 
@@ -65,10 +65,31 @@ public class RabbitHole extends NonBlockable {
         }
         if (!offSpringSet.isEmpty()) {
             for (Animal offSpring : offSpringSet) {
-                this.animalEnters(offSpring);
+                this.rabbitEntersNetwork(offSpring);
                 world.add(offSpring);
             }
         }
+    }
+
+    /**
+     * Method for when a rabbits enters the hole network
+     * @param rabbit the rabbit that entered teh network
+     * @param world reference to the world
+     */
+    public void enterRabbit(Animal rabbit, World world) {
+        if(this.inhabitants.contains(rabbit)) {
+            // Rabbit is already inside
+            return;
+        }
+
+        Location rabbitLocation = world.getLocation(rabbit);
+        if(!rabbitLocation.equals(this.getLocation(world))) {
+            // Rabbit cannot enter hole without being above it
+            return;
+        }
+
+        this.rabbitEntersNetwork(rabbit);
+        world.remove(rabbit);
     }
 
     /**
@@ -81,7 +102,7 @@ public class RabbitHole extends NonBlockable {
 
         // If the rabbit hole tile is empty, place the rabbit there
         if (world.isTileEmpty(holeLocation)) {
-            this.animalLeave(rabbit); // Remove the rabbit from the hole
+            this.rabbitExitsNetwork(rabbit); // Remove the rabbit from the hole
             world.setTile(holeLocation, rabbit); // Place the rabbit on the tile
         } else {
             // If the rabbit hole is blocked, place the rabbit on a surrounding empty tile
@@ -90,7 +111,7 @@ public class RabbitHole extends NonBlockable {
                 // Rabbit can't exit, everything is blocked
                 return;
             }
-            this.animalLeave(rabbit); // Remove the rabbit from the hole
+            this.rabbitExitsNetwork(rabbit); // Remove the rabbit from the hole
             world.setTile(tiles.iterator().next(), rabbit); // Place the rabbit on a nearby tile
         }
     }
@@ -116,37 +137,20 @@ public class RabbitHole extends NonBlockable {
      * Method to add an Animal to the inhabitants of the hole network when it enters
      * @param animal the animal that enters the hole
      */
-    public void animalEnters(Animal animal) {
+    public void rabbitEntersNetwork(Animal animal) {
         for (RabbitHole hole : this.connectedHoles) {
             hole.animalAdd(animal);
         }
-    }
-    /**
-     * Method to add an Animal to the inhabitants set.
-     * SHOULD ONLY BE USED BY OTHER ANIMAL HOLES USE {@link #animalEnters(Animal animal)} INSTEAD.
-     * @param animal animal to add
-     */
-    public void animalAdd(Animal animal) {
-        this.inhabitants.add(animal);
     }
 
     /**
      * Method to remove an Animal from the inhabitants of the hole network when it leaves
      * @param animal animal that leaves
      */
-    public void animalLeave(Animal animal) {
+    public void rabbitExitsNetwork(Animal animal) {
         for (RabbitHole hole : this.connectedHoles) {
             hole.animalRemove(animal);
         }
-    }
-
-    /**
-     * Method to remove an Animal from the inhabitants set
-     * SHOULD ONLY BE USED BY OTHER ANIMAL HOLES USE {@link #animalLeave(Animal)} INSTEAD.
-     * @param animal animal to remove
-     */
-    public void animalRemove(Animal animal) {
-        this.inhabitants.remove(animal);
     }
 
     /**
@@ -158,27 +162,11 @@ public class RabbitHole extends NonBlockable {
     }
 
     /**
-     * Getter to get the inhabitants of the hole network
-     * @return inhabitants of the hole network
-     */
-    public Set<Animal> getInhabitants() {
-        return this.inhabitants;
-    }
-
-    /**
-     * Getter of the location of this hole
-     * @param world the current world
-     * @return the location of the hole
-     */
-    public Location getLocation(World world) {
-        return world.getLocation(this);
-    }
-
-    /**
      * Method to destroy the hole.
      * Removes the hole from the network then deletes it form the world
      * @param world the current world
      */
+    @Override
     public void destroyHole(World world) {
         Iterator<RabbitHole> it = this.connectedHoles.iterator();
 
