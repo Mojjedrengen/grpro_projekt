@@ -11,6 +11,7 @@ import itumulator.world.Location;
 import itumulator.world.World;
 
 import simulator.util.WorldLoader;
+import simulator.util.exceptions.InvalidWorldInputFileException;
 import simulator.actors.*;
 import simulator.objects.*;
 
@@ -21,19 +22,29 @@ public class Main {
 
     public static void main(String[] args) {
 
+        final int windowResolution = 800;
+        final int delay = 200;
         WorldLoader wl = null;
         try {
-            wl = new WorldLoader("resources/inputs/week-1/new_input.txt");
+            wl = new WorldLoader("resources/inputs/week-1/coordinate_rabbit.txt", windowResolution, delay);
+        }catch(InvalidWorldInputFileException e) {
+            System.out.println("WorldLoader: Syntax error in input file");
+            System.out.println("Line number: " + e.getLineNumber());
+            System.out.println("Offending line: " + e.getInvalidLine());
+            System.out.println("Error: " + e.getError());
+            // TODO: GUI widget/file explorer to allow the user to select new input file
+            System.exit(0);
+        }catch(IllegalArgumentException e) {
+            System.out.println("WorldLoader: Invalid argument");
+            System.out.println(e.getMessage());
+            System.exit(0);
         }catch(FileNotFoundException e) {
-            System.out.println("Input file not found:");
+            System.out.println("WorldLoader: File not found");
             System.out.println(e.getMessage());
             System.exit(0);
         }
-        final int worldSize = wl.getWorldSize();
 
-        Program p = new Program(worldSize, 800, 200);
-        World w = p.getWorld();
-        p.setDisplayInformation(Rabbit.class, new DisplayInformation(Color.red, "rabbit-large"));
+        Program p = wl.getProgram();
         p.setDisplayInformation(RabbitHole.class, new DisplayInformation(Color.black, "hole"));
 
         List<Animal> animals = wl.getAnimals();
@@ -42,23 +53,6 @@ public class Main {
         System.out.println("world size: " + wl.getWorldSize());
         System.out.println("Animals size: " + animals.size());
         System.out.println("NonBlockabes size: " + nonBlockables.size());
-
-        Random random = new Random();
-        Location location = new Location( random.nextInt(worldSize), random.nextInt(worldSize) );
-
-        for(Animal animal : animals) {
-            while(!w.isTileEmpty(location)) {
-                location = new Location( random.nextInt(worldSize), random.nextInt(worldSize) );
-            }
-            w.setTile(location, animal);
-        }
-
-        for(NonBlockable nonBlockable : nonBlockables) {
-            while(w.containsNonBlocking(location)) {
-                location = new Location( random.nextInt(worldSize), random.nextInt(worldSize) );
-            }
-            w.setTile(location, nonBlockable);
-        }
 
         p.show();
     }
