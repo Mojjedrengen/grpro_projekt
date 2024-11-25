@@ -10,6 +10,7 @@ public class InvalidWorldInputFileException extends RuntimeException {
 
     private int lineNumber;
     private String invalidLine;
+    private String error;
 
     public InvalidWorldInputFileException(String invalidLine, int lineNumber) {
         super("Invalid input on line number (" + lineNumber + "): " + invalidLine);
@@ -21,6 +22,7 @@ public class InvalidWorldInputFileException extends RuntimeException {
         super("Invalid input on line number (" + lineNumber + "): " + invalidLine + "\n" + message);
         this.lineNumber = lineNumber;
         this.invalidLine = invalidLine;
+        this.error = message;
     }
 
     public int getLineNumber() {
@@ -29,6 +31,10 @@ public class InvalidWorldInputFileException extends RuntimeException {
 
     public String getInvalidLine() {
         return this.invalidLine;
+    }
+
+    public String getError() {
+        return this.error;
     }
 
 }
