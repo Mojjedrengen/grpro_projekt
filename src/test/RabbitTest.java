@@ -164,7 +164,7 @@ public class RabbitTest {
         this.w.add(r2);
 
         rh.rabbitEntersNetwork(r1);
-        rh.rabbitExitsNetwork(r2);
+        rh.rabbitEntersNetwork(r2);
 
         for(int i = 0; i < 100; i++) {
             r1.reproduce(w);
