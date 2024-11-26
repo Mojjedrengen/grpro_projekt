@@ -18,7 +18,7 @@ public class Wolf extends Animal implements DynamicDisplayInformationProvider {
 
     WolfPack wolfPack;
 
-    Wolf() {
+    public Wolf() {
         // 50 max energy, lives until age of 12, eats rabbits
         super(50, 12, Rabbit.class);
         wolfPack = null;
