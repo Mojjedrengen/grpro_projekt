@@ -7,6 +7,7 @@ import simulator.objects.holes.WolfHole;
 
 public class WolfPack {
 
+    protected Set<Wolf> members;
     protected WolfHole assignedHole;
 
     public WolfPack(WolfHole assignedHole) {
