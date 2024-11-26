@@ -5,6 +5,5 @@ import simulator.actors.Wolf;
 
 public class WolfHole extends Hole {
 
-
 }
 

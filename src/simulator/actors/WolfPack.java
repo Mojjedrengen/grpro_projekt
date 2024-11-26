@@ -10,9 +10,9 @@ public class WolfPack {
     protected Set<Wolf> members;
     protected WolfHole assignedHole;
 
-    WolfPack() {
+    public WolfPack(WolfHole assignedHole) {
         this.members = new HashSet<>();
-        this.assignedHole = null; // Something here
+        this.assignedHole = assignedHole;
     }
 
     public Set<Wolf> getMembers() {

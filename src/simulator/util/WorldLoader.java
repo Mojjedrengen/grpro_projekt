@@ -17,7 +17,8 @@ import simulator.objects.NonBlockable;
 import simulator.objects.holes.RabbitHole;
 import simulator.actors.*;
 import simulator.util.exceptions.*;
-import simulator.objects.Grass;
+import simulator.objects.plants.Grass;
+import simulator.objects.plants.Bush;
 
 /**
  * This class is used to parse world input files
@@ -154,6 +155,8 @@ public class WorldLoader {
         switch(unknownObjectString) {
             case "grass":
             return () -> { return new Grass(); };
+            case "bush":
+            return () -> { return new Bush(); };
             case "burrow":
             return () -> { return new RabbitHole(); };
             default:

@@ -8,7 +8,7 @@ import java.util.Random;
 import java.util.Set;
 
 import java.awt.Color;
-import simulator.objects.Grass;
+import simulator.objects.plants.Grass;
 import simulator.objects.NonBlockable;
 import simulator.objects.holes.RabbitHole;
 import simulator.util.Utilities;
@@ -252,11 +252,11 @@ public void act(World world) {
 
         // Has not eaten today, actively search for food
         if(!this.hasEatenToday) {
-
+            // Check if rabbit already has path to food or/and if final destination in path still has food.
             if(!this.pathFinder.hasPath() || 
-            !Utilities.locationContainsNonBlockingType(world, this.pathFinder.getFinalLocationInPath(), Grass.class)) {
-                this.pathFinder.setLocation(currentLocation);
-                this.pathFinder.findPathToNearest(Grass.class, world);
+            !Utilities.locationContainsNonBlockingType(world, this.pathFinder.getFinalLocationInPath(), this.foodType)) {
+                // Go to nearest food. Inherited from Animal
+                this.findPathToNearestFood(world);
             }
         }
 

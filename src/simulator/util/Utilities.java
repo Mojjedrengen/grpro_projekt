@@ -7,7 +7,9 @@ import simulator.objects.NonBlockable;
 import simulator.util.exceptions.FullWorldException;
 
 import java.util.ArrayList;
+import java.util.Set;
 import java.util.Random;
+import java.util.Iterator;
 
 /**
  * The Utilities class functions more akin to a namespace rather than a class.
@@ -15,6 +17,25 @@ import java.util.Random;
  * needed throughout the program.
  */
 public class Utilities {
+
+    public static <T> T getRandomFromSet(Set<T> set, Random random) {
+        final int setSize = set.size();
+        if(setSize == 0) return null;
+
+        T value = null;
+        Iterator<T> it = set.iterator();
+        
+        // Pick random element from set
+        final int randomTileIndex = random.nextInt(setSize);
+        for(int i = 0; i < randomTileIndex; i++)
+            value = it.next();
+
+        return value;
+    }
+
+    public static <T> T getRandomFromSet(Set<T> set) {
+        return getRandomFromSet(set, new Random());
+    }
 
     public static <T> T getLast(ArrayList<T> array) {
         return array.get(array.size() - 1);

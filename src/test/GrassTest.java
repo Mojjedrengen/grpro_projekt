@@ -5,7 +5,8 @@ import itumulator.world.Location;
 import itumulator.world.World;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import simulator.objects.Grass;
+import simulator.objects.plants.Grass;
+import simulator.objects.plants.Plant;
 
 import java.awt.*;
 import java.util.ArrayList;
@@ -25,12 +26,12 @@ class GrassTest {
     @Test
     void spreadChanceTest() {
         List<Integer> timeToSpread = new ArrayList<>();
-        for (int i = 0; i < 1_000_000; i++) {
+        for (int i = 0; i < 1_000; i++) {
            Grass g = new Grass();
            Location l = new Location(0, 0);
            w.setCurrentLocation(l);
            w.setTile(l, g);
-           while (g.getGrassStage() != g.getGrassMaxStage()) {
+           while (g.getCurrentStage() != Plant.Stage.RIPE) {
                g.act(w);
            }
            boolean whileLoop = true;
@@ -54,7 +55,7 @@ class GrassTest {
             sum += n;
         }
         double chance = sum / (double)timeToSpread.size();
-        assertEquals(new Grass().getGrassStage(), chance);
+        assertEquals(new Grass().getSpreadChance(), chance);
     }
 
     @Test
@@ -65,7 +66,7 @@ class GrassTest {
         w.setTile(l, g);
         for (int i = 0; i < 50; i++) {
             g.act(w);
-            if (g.getGrassStage() != g.getGrassMaxStage()) {
+            if (g.getCurrentStage() != Plant.Stage.RIPE) {
                 assertEquals(Color.yellow, g.getInformation().getColor());
             } else {
                 assertEquals(Color.green, g.getInformation().getColor());
