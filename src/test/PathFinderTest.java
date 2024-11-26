@@ -13,7 +13,7 @@ import itumulator.world.Location;
 
 import simulator.util.PathFinder;
 import simulator.actors.Rabbit;
-import simulator.objects.Grass;
+import simulator.objects.plants.Grass;
 
 public class PathFinderTest {
 

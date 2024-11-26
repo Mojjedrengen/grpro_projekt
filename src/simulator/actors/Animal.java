@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.util.Random;
 
 import simulator.objects.NonBlockable;
-import simulator.objects.Grass;
+import simulator.objects.plants.Grass;
 import simulator.util.PathFinder;
 
 /**
@@ -172,7 +172,7 @@ public abstract class Animal implements Actor {
 
     // Currently unsused
     // Actively hunt for food, tries to find nearest food
-    protected void activeHunt(World world) {
+    protected void findPathToNearestFood(World world) {
         Location currentLocation = world.getLocation(this);
         this.pathFinder.setLocation(currentLocation);
         this.pathFinder.findPathToNearest(this.foodType, world);
