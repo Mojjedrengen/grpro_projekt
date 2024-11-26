@@ -140,6 +140,10 @@ public class WorldLoader {
         switch(unknownObjectString) {
             case "rabbit":
             return () -> { return new Rabbit(); };
+            case "wolf":
+            return () -> { return new Wolf(); };
+            case "bear":
+            return () -> { return new Bear(); };
             default:
             return null;
         }
