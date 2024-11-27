@@ -16,6 +16,7 @@ import itumulator.world.Location;
 import simulator.objects.NonBlockable;
 import simulator.objects.holes.OldRabbitHole;
 import simulator.actors.*;
+import simulator.objects.holes.RabbitHole;
 import simulator.util.exceptions.*;
 import simulator.objects.plants.Grass;
 import simulator.objects.plants.Bush;
@@ -162,7 +163,7 @@ public class WorldLoader {
             case "bush":
             return () -> { return new Bush(); };
             case "burrow":
-            return () -> { return new OldRabbitHole(); };
+            return () -> { return new RabbitHole(); };
             default:
             return null;
         }
