@@ -15,7 +15,6 @@ import simulator.objects.holes.RabbitHole;
 import simulator.objects.holes.RabbitHoleNetwork;
 import simulator.objects.plants.Grass;
 import simulator.objects.NonBlockable;
-import simulator.objects.holes.OldRabbitHole;
 import simulator.util.Utilities;
 
 /**
@@ -53,16 +52,6 @@ public class Rabbit extends Animal implements DynamicDisplayInformationProvider 
         this.assignedNetwork = null; // No hole assigned initially
         // PathFinder expects starting location, setting to null for now
         this.hasAttemptetToReproduce = false;
-    }
-
-    /**
-     * Constructor to create a rabbit while it is inside a hole.
-     * Usefully for when the rabbits reproduce
-     * @param hole the hole the rabbit was created in
-     */
-    @Deprecated public Rabbit(OldRabbitHole hole) {
-        this();
-        //this.assignedHole = hole;
     }
 
     public Rabbit(RabbitHoleNetwork network) {

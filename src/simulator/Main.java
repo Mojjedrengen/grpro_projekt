@@ -43,7 +43,7 @@ public class Main {
         }
 
         Program p = wl.getProgram();
-        p.setDisplayInformation(OldRabbitHole.class, new DisplayInformation(Color.black, "hole"));
+        p.setDisplayInformation(RabbitHole.class, new DisplayInformation(Color.black, "hole"));
 
         List<Animal> animals = wl.getAnimals();
         List<NonBlockable> nonBlockables = wl.getNonBlockables();

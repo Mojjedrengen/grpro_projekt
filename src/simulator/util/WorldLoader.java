@@ -14,7 +14,6 @@ import itumulator.world.World;
 import itumulator.world.Location;
 
 import simulator.objects.NonBlockable;
-import simulator.objects.holes.OldRabbitHole;
 import simulator.actors.*;
 import simulator.objects.holes.RabbitHole;
 import simulator.util.exceptions.*;

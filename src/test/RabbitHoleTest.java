@@ -1,18 +1,8 @@
 package test;
 
-import itumulator.world.Location;
-import itumulator.world.World;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import simulator.actors.Animal;
-import simulator.actors.Rabbit;
-import simulator.objects.holes.OldRabbitHole;
-
-import java.util.Set;
-
-import static org.junit.jupiter.api.Assertions.*;
-
 class RabbitHoleTest {
+    //TODO : MAKE RABBITHOLE TEST AGAIN
+    /*
     OldRabbitHole hole;
 
     @BeforeEach
@@ -84,4 +74,6 @@ class RabbitHoleTest {
         assertNull(hole.getConnectedHoles());
         assertFalse(world.contains(hole));
     }
+
+    */
 }

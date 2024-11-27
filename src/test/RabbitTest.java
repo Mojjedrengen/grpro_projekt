@@ -3,7 +3,6 @@ package test;
 import itumulator.world.Location;
 import itumulator.world.World;
 import simulator.actors.Rabbit;
-import simulator.objects.holes.OldRabbitHole;
 import simulator.objects.holes.RabbitHole;
 import simulator.objects.plants.Grass;
 import simulator.util.PathFinder;

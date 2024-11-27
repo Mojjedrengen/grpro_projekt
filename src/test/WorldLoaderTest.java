@@ -4,7 +4,7 @@ import org.junit.jupiter.api.Test;
 import simulator.actors.Animal;
 import simulator.actors.Rabbit;
 import simulator.objects.NonBlockable;
-import simulator.objects.holes.OldRabbitHole;
+import simulator.objects.holes.RabbitHole;
 import simulator.objects.plants.Grass;
 import simulator.util.WorldLoader;
 
@@ -201,7 +201,7 @@ class WorldLoaderTest {
         }
 
         for(NonBlockable nonBlockable  : wl.getNonBlockables()) {
-            if(!(nonBlockable instanceof OldRabbitHole)) {
+            if(!(nonBlockable instanceof RabbitHole)) {
                 fail("Incorrect NonBlockable dynamic type, expected RabbitHole");
             }
         }
@@ -229,7 +229,7 @@ class WorldLoaderTest {
         }
 
         for(NonBlockable nonBlockable  : wl.getNonBlockables()) {
-            if(!(nonBlockable instanceof OldRabbitHole)) {
+            if(!(nonBlockable instanceof RabbitHole)) {
                 fail("Incorrect NonBlockable dynamic type, expected RabbitHole");
             }
         }
@@ -257,7 +257,7 @@ class WorldLoaderTest {
         }
 
         for(NonBlockable nonBlockable  : wl.getNonBlockables()) {
-            if(!(nonBlockable instanceof OldRabbitHole)) {
+            if(!(nonBlockable instanceof RabbitHole)) {
                 fail("Incorrect NonBlockable dynamic type, expected RabbitHole");
             }
         }
