@@ -4,17 +4,12 @@ import itumulator.executable.DisplayInformation;
 import itumulator.executable.DynamicDisplayInformationProvider;
 import itumulator.world.Location;
 import itumulator.world.World;
-
-import java.util.HashSet;
+import java.awt.Color;
 import java.util.Random;
 import java.util.Set;
-
-import java.awt.Color;
-
-import simulator.objects.holes.RabbitHole;
-import simulator.objects.holes.RabbitHoleNetwork;
-import simulator.objects.plants.Grass;
 import simulator.objects.NonBlockable;
+import simulator.objects.holes.RabbitHole;
+import simulator.objects.plants.Grass;
 import simulator.util.Utilities;
 
 /**
@@ -42,26 +37,31 @@ public class Rabbit extends Animal implements DynamicDisplayInformationProvider 
     static DisplayInformation largeRabbit = new DisplayInformation(Color.red, "rabbit-large");
     static DisplayInformation smallRabbit = new DisplayInformation(Color.red, "rabbit-small");
 
+    private RabbitHole assignedHole; // The hole assigned to this rabbit
     // Rabbit only attempts to reprodouce once per night, this keeps track of wheter it has or hasn't
     private boolean hasAttemptetToReproduce;
-    private RabbitHoleNetwork assignedNetwork; // The new Hole thing
 
 
     public Rabbit() {
-        super(20, 9, Grass.class); // Call the Animal superclass constructor
-        this.assignedNetwork = null; // No hole assigned initially
+        super(20, 9, Grass.class, 25); // Call the Animal superclass constructor
+        this.assignedHole = null; // No hole assigned initially
         // PathFinder expects starting location, setting to null for now
         this.hasAttemptetToReproduce = false;
     }
 
-    public Rabbit(RabbitHoleNetwork network) {
+    /**
+     * Constructor to create a rabbit while it is inside a hole.
+     * Usefully for when the rabbits reproduce
+     * @param hole the hole the rabbit was created in
+     */
+    public Rabbit(RabbitHole hole) {
         this();
-        this.assignedNetwork = network;
+        this.assignedHole = hole;
     }
 
     // Check if the rabbit has an assigned hole
     public boolean hasHole() {
-        return assignedNetwork != null;
+        return assignedHole != null;
     }
 
     /**
@@ -71,21 +71,18 @@ public class Rabbit extends Animal implements DynamicDisplayInformationProvider 
      * @return Whether if rabbit is currently in hole or not
      */
     public boolean isInHole() {
-        return assignedNetwork != null && assignedNetwork.getInhabitants().contains(this);
+        return assignedHole != null && assignedHole.getInhabitants().contains(this);
     }
 
     @Override
     public void reproduce(World world) {
-        this.assignedNetwork.reproduceInhabitant(world);
+        this.assignedHole.reproduceInhabitants(world);
         hasAttemptetToReproduce = true;
     }
 
     // Assign a hole to the rabbit
-    public void setAssignedNetwork(RabbitHoleNetwork network) {
-        this.assignedNetwork = network;
-    }
-    public void setAssignedNetwork(RabbitHole hole) {
-        this.assignedNetwork = hole.getNetwork();
+    public void assignHole(RabbitHole rabbitHole) {
+        this.assignedHole = rabbitHole;
     }
 
     // Move towards the assigned hole
@@ -94,11 +91,9 @@ public class Rabbit extends Animal implements DynamicDisplayInformationProvider 
 
 
         Location currentLocation = world.getLocation(this);
-        //Location rabbitHoleLocation = assignedHole.getLocation(world);
-        Location rabbitHoleLocation = Utilities.getClosestLocationFromSet(this.assignedNetwork.getHoleLocation(world), world.getLocation(this));
-
+        Location rabbitHoleLocation = assignedHole.getLocation(world);
         if (currentLocation.equals(rabbitHoleLocation)) { // Rabbit enters hole
-            assignedNetwork.getHoleFromLocation(world, rabbitHoleLocation).enterRabbit(this, world);
+            assignedHole.enterRabbit(this, world);
             return;
         }
         //if statement to only go towards hole if it's evening time...
@@ -133,13 +128,8 @@ public class Rabbit extends Animal implements DynamicDisplayInformationProvider 
      * Rabbit exists hole
      */
     private void exitHole(World world) {
-        if (this.assignedNetwork != null) {
-            Set<RabbitHole> holes = new HashSet<>();
-            for (RabbitHole hole : this.assignedNetwork.getEntrances()) {
-                if (!hole.predatorNearby(world)) holes.add(hole);
-            }
-            RabbitHole exitHole = Utilities.getRandomFromSet(holes);
-            exitHole.exitRabbit(this, world);
+        if (this.assignedHole != null) {
+            this.assignedHole.exitRabbit(this, world);
         }
     }
 
@@ -151,7 +141,7 @@ public class Rabbit extends Animal implements DynamicDisplayInformationProvider 
         Set<Location> search = world.getSurroundingTiles(3);
         for (Location location : search) {
             if (world.containsNonBlocking(location) && world.getNonBlocking(location) instanceof RabbitHole hole) {
-                this.setAssignedNetwork(hole.getNetwork());
+                this.assignHole(hole);
                 this.goHole(world);
                 break;
             }
@@ -192,7 +182,7 @@ public class Rabbit extends Animal implements DynamicDisplayInformationProvider 
         // TODO find a way to add this to our WorldLoader list
         RabbitHole rabbitHole = new RabbitHole();
         world.setTile(currentLocation, rabbitHole);
-        this.setAssignedNetwork(rabbitHole.getNetwork());
+        this.assignHole(rabbitHole);
     }
 
 @Override
@@ -226,7 +216,7 @@ public void act(World world) {
             if(world.containsNonBlocking(currentLocation)) {
                 NonBlockable nonBlock = (NonBlockable)world.getNonBlocking(world.getLocation(this));
                 if(nonBlock instanceof RabbitHole rabbitHole) {
-                    this.setAssignedNetwork(rabbitHole.getNetwork());
+                    this.assignHole(rabbitHole);
                 }
             }
         }
@@ -273,7 +263,6 @@ public void act(World world) {
         if(world.containsNonBlocking(currentLocation)) {
             NonBlockable nonBlockable = (NonBlockable)world.getNonBlocking(currentLocation);
             if(nonBlockable instanceof Grass grass) {
-                if(this.hasEatenToday && this.getEnergy() < this.maxEnergy) return;
                 grass.consume(world);
                 this.hasEatenToday = true;
                 this.increaseEnergy(1);
