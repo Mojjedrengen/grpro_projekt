@@ -4,12 +4,17 @@ import itumulator.executable.DisplayInformation;
 import itumulator.executable.DynamicDisplayInformationProvider;
 import itumulator.world.Location;
 import itumulator.world.World;
-import java.awt.Color;
+
+import java.util.HashSet;
 import java.util.Random;
 import java.util.Set;
+
+import java.awt.Color;
+
+import simulator.objects.holes.RabbitHoleNetwork;
+import simulator.objects.plants.Grass;
 import simulator.objects.NonBlockable;
 import simulator.objects.holes.RabbitHole;
-import simulator.objects.plants.Grass;
 import simulator.util.Utilities;
 
 /**
@@ -37,14 +42,13 @@ public class Rabbit extends Animal implements DynamicDisplayInformationProvider 
     static DisplayInformation largeRabbit = new DisplayInformation(Color.red, "rabbit-large");
     static DisplayInformation smallRabbit = new DisplayInformation(Color.red, "rabbit-small");
 
-    private RabbitHole assignedHole; // The hole assigned to this rabbit
     // Rabbit only attempts to reprodouce once per night, this keeps track of wheter it has or hasn't
     private boolean hasAttemptetToReproduce;
-
+    private RabbitHoleNetwork assignedNetwork; // The hole assigned to this rabbit
 
     public Rabbit() {
         super(20, 9, Grass.class, 25); // Call the Animal superclass constructor
-        this.assignedHole = null; // No hole assigned initially
+        this.assignedNetwork = null; // No hole assigned initially
         // PathFinder expects starting location, setting to null for now
         this.hasAttemptetToReproduce = false;
     }
@@ -52,16 +56,17 @@ public class Rabbit extends Animal implements DynamicDisplayInformationProvider 
     /**
      * Constructor to create a rabbit while it is inside a hole.
      * Usefully for when the rabbits reproduce
-     * @param hole the hole the rabbit was created in
+     * @param network the hole the rabbit was created in
      */
-    public Rabbit(RabbitHole hole) {
+    public Rabbit(RabbitHoleNetwork network) {
         this();
-        this.assignedHole = hole;
+        this.assignedNetwork = network;
     }
+
 
     // Check if the rabbit has an assigned hole
     public boolean hasHole() {
-        return assignedHole != null;
+        return assignedNetwork != null;
     }
 
     /**
@@ -71,18 +76,22 @@ public class Rabbit extends Animal implements DynamicDisplayInformationProvider 
      * @return Whether if rabbit is currently in hole or not
      */
     public boolean isInHole() {
-        return assignedHole != null && assignedHole.getInhabitants().contains(this);
+        return assignedNetwork != null && assignedNetwork.getInhabitants().contains(this);
     }
+
 
     @Override
     public void reproduce(World world) {
-        this.assignedHole.reproduceInhabitants(world);
+        this.assignedNetwork.reproduceInhabitant(world);
         hasAttemptetToReproduce = true;
     }
 
     // Assign a hole to the rabbit
-    public void assignHole(RabbitHole rabbitHole) {
-        this.assignedHole = rabbitHole;
+    public void setAssignedNetwork(RabbitHoleNetwork network) {
+        this.assignedNetwork = network;
+    }
+    public void setAssignedNetwork(RabbitHole hole) {
+        this.assignedNetwork = hole.getNetwork();
     }
 
     // Move towards the assigned hole
@@ -91,9 +100,11 @@ public class Rabbit extends Animal implements DynamicDisplayInformationProvider 
 
 
         Location currentLocation = world.getLocation(this);
-        Location rabbitHoleLocation = assignedHole.getLocation(world);
+        //Location rabbitHoleLocation = assignedHole.getLocation(world);
+        Location rabbitHoleLocation = Utilities.getClosestLocationFromSet(this.assignedNetwork.getHoleLocation(world), world.getLocation(this));
+
         if (currentLocation.equals(rabbitHoleLocation)) { // Rabbit enters hole
-            assignedHole.enterRabbit(this, world);
+            assignedNetwork.getHoleFromLocation(world, rabbitHoleLocation).enterRabbit(this, world);
             return;
         }
         //if statement to only go towards hole if it's evening time...
@@ -101,8 +112,8 @@ public class Rabbit extends Animal implements DynamicDisplayInformationProvider 
 
         this.pathFinder.setLocation(currentLocation);
         Location nextStep = null;
-        if(pathFinder.hasPath() && 
-           pathFinder.isFinalLocationInPath(rabbitHoleLocation) ) {
+        if(pathFinder.hasPath() &&
+                pathFinder.isFinalLocationInPath(rabbitHoleLocation) ) {
 
             nextStep = (this.pathFinder.getPath()).poll(); // Move closer to goal
         }else { // Path hasn't been found yet
@@ -128,10 +139,16 @@ public class Rabbit extends Animal implements DynamicDisplayInformationProvider 
      * Rabbit exists hole
      */
     private void exitHole(World world) {
-        if (this.assignedHole != null) {
-            this.assignedHole.exitRabbit(this, world);
+        if (this.assignedNetwork != null) {
+            Set<RabbitHole> holes = new HashSet<>();
+            for (RabbitHole hole : this.assignedNetwork.getEntrances()) {
+                if (!hole.predatorNearby(world)) holes.add(hole);
+            }
+            RabbitHole exitHole = Utilities.getRandomFromSet(holes);
+            exitHole.exitRabbit(this, world);
         }
     }
+
 
     /**
      * Rabbit searches for nearby rabbit holes with a search radius of 3
@@ -141,13 +158,13 @@ public class Rabbit extends Animal implements DynamicDisplayInformationProvider 
         Set<Location> search = world.getSurroundingTiles(3);
         for (Location location : search) {
             if (world.containsNonBlocking(location) && world.getNonBlocking(location) instanceof RabbitHole hole) {
-                this.assignHole(hole);
+                this.setAssignedNetwork(hole.getNetwork());
                 this.goHole(world);
                 break;
             }
         }
     }
-    
+
     /**
      * Rabbit day behaviour.
      */
@@ -165,7 +182,7 @@ public class Rabbit extends Animal implements DynamicDisplayInformationProvider 
             this.wander(world);
         }
     }
-    
+
 
     /**
      * 5% chance for rabiit to create a hole on the tile it's currently standing on.
@@ -182,31 +199,31 @@ public class Rabbit extends Animal implements DynamicDisplayInformationProvider 
         // TODO find a way to add this to our WorldLoader list
         RabbitHole rabbitHole = new RabbitHole();
         world.setTile(currentLocation, rabbitHole);
-        this.assignHole(rabbitHole);
+        this.setAssignedNetwork(rabbitHole.getNetwork());
     }
 
-@Override
-public void act(World world) {
-    if (world.isNight()) {
-        // Nighttime behavior
-        if (this.hasHole()) {
-            this.goHole(world); // Move towards the assigned hole
-        } else {
-            this.searchForNearbyHoles(world); // Search for nearby holes
-            if (!this.hasHole()) {
-                this.tryToMakeHole(world); // Try to make a new hole
-                if (!this.hasHole()) this.wander(world); // Wander if no hole found
+    @Override
+    public void act(World world) {
+        if (world.isNight()) {
+            // Nighttime behavior
+            if (this.hasHole()) {
+                this.goHole(world); // Move towards the assigned hole
+            } else {
+                this.searchForNearbyHoles(world); // Search for nearby holes
+                if (!this.hasHole()) {
+                    this.tryToMakeHole(world); // Try to make a new hole
+                    if (!this.hasHole()) this.wander(world); // Wander if no hole found
+                }
             }
-        }
 
-        // Reproduce if in a hole and hasn't attempted yet
-        if (this.isInHole() && !this.hasAttemptetToReproduce) {
-            this.reproduce(world);
+            // Reproduce if in a hole and hasn't attempted yet
+            if (this.isInHole() && !this.hasAttemptetToReproduce) {
+                this.reproduce(world);
+            }
+        } else {
+            // Daytime behavior
+            this.actDuringDay(world); // Simplified daytime logic
         }
-    } else {
-        // Daytime behavior
-        this.actDuringDay(world); // Simplified daytime logic
-    }
         if( !this.isInHole() ) {
             this.eat(world); // Try to eat
 
@@ -216,7 +233,7 @@ public void act(World world) {
             if(world.containsNonBlocking(currentLocation)) {
                 NonBlockable nonBlock = (NonBlockable)world.getNonBlocking(world.getLocation(this));
                 if(nonBlock instanceof RabbitHole rabbitHole) {
-                    this.assignHole(rabbitHole);
+                    this.setAssignedNetwork(rabbitHole.getNetwork());
                 }
             }
         }
@@ -227,12 +244,13 @@ public void act(World world) {
         // Lose 10 extra if the rabbit hasn't eaten at all today
         if(world.getCurrentTime() == 0) {
             // Decrease energy also causes aging
-            this.decreaseEnergy(this.getAge() + (this.hasEatenToday ? 0 : 10), world); 
+            this.decreaseEnergy(this.getAge() + (this.hasEatenToday ? 0 : 10), world);
             this.resetHunger();
             //System.out.println("Energy levels end of day: " + this.getEnergy());
             hasAttemptetToReproduce = false;
         }
     }
+
 
 
     // TODO
@@ -252,8 +270,8 @@ public void act(World world) {
         // Has not eaten today, actively search for food
         if(!this.hasEatenToday) {
             // Check if rabbit already has path to food or/and if final destination in path still has food.
-            if(!this.pathFinder.hasPath() || 
-            !Utilities.locationContainsNonBlockingType(world, this.pathFinder.getFinalLocationInPath(), this.foodType)) {
+            if(!this.pathFinder.hasPath() ||
+                    !Utilities.locationContainsNonBlockingType(world, this.pathFinder.getFinalLocationInPath(), this.foodType)) {
                 // Go to nearest food. Inherited from Animal
                 this.findPathToNearestFood(world);
             }
@@ -263,6 +281,7 @@ public void act(World world) {
         if(world.containsNonBlocking(currentLocation)) {
             NonBlockable nonBlockable = (NonBlockable)world.getNonBlocking(currentLocation);
             if(nonBlockable instanceof Grass grass) {
+                if(this.hasEatenToday && this.getEnergy() < this.maxEnergy) return;
                 grass.consume(world);
                 this.hasEatenToday = true;
                 this.increaseEnergy(1);
@@ -280,7 +299,6 @@ public void act(World world) {
         if (age > 2) return Rabbit.largeRabbit;
         return Rabbit.smallRabbit;
     }
-
 
 }
 

@@ -5,6 +5,7 @@ import itumulator.world.Location;
 import itumulator.world.World;
 import org.jetbrains.annotations.NotNull;
 import simulator.actors.Animal;
+import simulator.actors.Predator;
 
 import java.util.Set;
 
@@ -50,11 +51,10 @@ public class RabbitHole extends Hole{
 
     public RabbitHoleNetwork getNetwork() {return network;}
 
-    public boolean predatorNearby(@NotNull World world) {
-        return true; // TODO: REMOVE THIS WHEN PREDATOR IS ADDED AND UNCOMMENT BELLOW
-        /*Set<Location> neighbors = world.getSurroundingTiles(this.getLocation(world), 3);
+    public boolean predatorNearby(@NotNull World world){
+        Set<Location> neighbors = world.getSurroundingTiles(this.getLocation(world), 3);
         Set<Predator> nearbyPredator = world.getAll(Predator.class, neighbors);
-        return !nearbyPredator.isEmpty();*/
+        return !nearbyPredator.isEmpty();
     }
 
     /**
