@@ -144,9 +144,14 @@ public class Rabbit extends Animal implements DynamicDisplayInformationProvider 
             for (RabbitHole hole : this.assignedNetwork.getEntrances()) {
                 if (!hole.predatorNearby(world)) holes.add(hole);
             }
-            if (holes.isEmpty()) return;
-            RabbitHole exitHole = Utilities.getRandomFromSet(holes); //Why is it null?
-            if (exitHole == null) exitHole = holes.iterator().next();
+
+            RabbitHole exitHole;
+            if (holes.isEmpty()) {
+                // No safe entrances, pick something and hope for the best
+                exitHole = Utilities.getRandomFromSet(this.assignedNetwork.getEntrances());
+            }else {
+                RabbitHole exitHole = Utilities.getRandomFromSet(holes);
+            }
             exitHole.exitRabbit(this, world);
         }
     }
