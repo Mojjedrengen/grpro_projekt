@@ -6,24 +6,23 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import simulator.actors.Animal;
 import simulator.actors.Rabbit;
-import simulator.objects.holes.RabbitHole;
+import simulator.objects.holes.OldRabbitHole;
 
-import java.util.HashSet;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class RabbitHoleTest {
-    RabbitHole hole;
+    OldRabbitHole hole;
 
     @BeforeEach
     void setUp() {
-        hole = new RabbitHole();
+        hole = new OldRabbitHole();
     }
 
     @Test
     void connectHole() {
-        RabbitHole connected = new RabbitHole(hole);
+        OldRabbitHole connected = new OldRabbitHole(hole);
         hole.connectHole(connected);
 
         assertEquals(hole.getConnectedHoles(), connected.getConnectedHoles());
@@ -31,7 +30,7 @@ class RabbitHoleTest {
 
     @Test
     void disconnectHole() {
-        RabbitHole connected = new RabbitHole(hole);
+        OldRabbitHole connected = new OldRabbitHole(hole);
         hole.connectHole(connected);
         hole.disconnectHole(connected);
 
@@ -73,12 +72,12 @@ class RabbitHoleTest {
         world.setCurrentLocation(l);
         world.setTile(l, hole);
         for (int i = 0; i < 10; i++) {
-            hole.connectHole(new RabbitHole(hole.getConnectedHoles()));
+            hole.connectHole(new OldRabbitHole(hole.getConnectedHoles()));
             assertEquals(i+2, hole.getConnectedHoles().size());
         }
-        Set<RabbitHole> connectedHoles = hole.getConnectedHoles();
+        Set<OldRabbitHole> connectedHoles = hole.getConnectedHoles();
         hole.destroyHole(world);
-        for (RabbitHole connected : connectedHoles) {
+        for (OldRabbitHole connected : connectedHoles) {
             if (connected.equals(hole)) continue;
             assertFalse(connected.getConnectedHoles().contains(hole));
         }

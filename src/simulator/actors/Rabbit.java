@@ -8,9 +8,11 @@ import java.util.Random;
 import java.util.Set;
 
 import java.awt.Color;
+
+import simulator.objects.holes.RabbitHoleNetwork;
 import simulator.objects.plants.Grass;
 import simulator.objects.NonBlockable;
-import simulator.objects.holes.RabbitHole;
+import simulator.objects.holes.OldRabbitHole;
 import simulator.util.Utilities;
 
 /**
@@ -38,9 +40,10 @@ public class Rabbit extends Animal implements DynamicDisplayInformationProvider 
     static DisplayInformation largeRabbit = new DisplayInformation(Color.red, "rabbit-large");
     static DisplayInformation smallRabbit = new DisplayInformation(Color.red, "rabbit-small");
 
-    private RabbitHole assignedHole; // The hole assigned to this rabbit
+    @Deprecated private OldRabbitHole assignedHole; // The hole assigned to this rabbit
     // Rabbit only attempts to reprodouce once per night, this keeps track of wheter it has or hasn't
     private boolean hasAttemptetToReproduce;
+    private RabbitHoleNetwork assignedNetwork; // The new Hole thing
 
 
     public Rabbit() {
@@ -55,9 +58,14 @@ public class Rabbit extends Animal implements DynamicDisplayInformationProvider 
      * Usefully for when the rabbits reproduce
      * @param hole the hole the rabbit was created in
      */
-    public Rabbit(RabbitHole hole) {
+    @Deprecated public Rabbit(OldRabbitHole hole) {
         this();
         this.assignedHole = hole;
+    }
+
+    public Rabbit(RabbitHoleNetwork network) {
+        this();
+        this.assignedNetwork = network;
     }
 
     // Check if the rabbit has an assigned hole
@@ -82,7 +90,7 @@ public class Rabbit extends Animal implements DynamicDisplayInformationProvider 
     }
 
     // Assign a hole to the rabbit
-    public void assignHole(RabbitHole rabbitHole) {
+    public void assignHole(OldRabbitHole rabbitHole) {
         this.assignedHole = rabbitHole;
     }
 
@@ -141,7 +149,7 @@ public class Rabbit extends Animal implements DynamicDisplayInformationProvider 
     private void searchForNearbyHoles(World world) {
         Set<Location> search = world.getSurroundingTiles(3);
         for (Location location : search) {
-            if (world.containsNonBlocking(location) && world.getNonBlocking(location) instanceof RabbitHole hole) {
+            if (world.containsNonBlocking(location) && world.getNonBlocking(location) instanceof OldRabbitHole hole) {
                 this.assignHole(hole);
                 this.goHole(world);
                 break;
@@ -181,7 +189,7 @@ public class Rabbit extends Animal implements DynamicDisplayInformationProvider 
         if(random.nextInt(101) <= 95) return;
 
         // TODO find a way to add this to our WorldLoader list
-        RabbitHole rabbitHole = new RabbitHole();
+        OldRabbitHole rabbitHole = new OldRabbitHole();
         world.setTile(currentLocation, rabbitHole);
         this.assignHole(rabbitHole);
     }
@@ -216,7 +224,7 @@ public void act(World world) {
             Location currentLocation = world.getLocation(this);
             if(world.containsNonBlocking(currentLocation)) {
                 NonBlockable nonBlock = (NonBlockable)world.getNonBlocking(world.getLocation(this));
-                if(nonBlock instanceof RabbitHole rabbitHole) {
+                if(nonBlock instanceof OldRabbitHole rabbitHole) {
                     this.assignHole(rabbitHole);
                 }
             }
@@ -264,6 +272,7 @@ public void act(World world) {
         if(world.containsNonBlocking(currentLocation)) {
             NonBlockable nonBlockable = (NonBlockable)world.getNonBlocking(currentLocation);
             if(nonBlockable instanceof Grass grass) {
+                if(this.hasEatenToday && this.getEnergy() < this.maxEnergy) return;
                 grass.consume(world);
                 this.hasEatenToday = true;
                 this.increaseEnergy(1);

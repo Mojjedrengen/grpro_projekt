@@ -2,13 +2,10 @@ package simulator;
 
 import java.awt.Color;
 import java.util.List;
-import java.util.Random;
 import java.io.*;
 
 import itumulator.executable.DisplayInformation;
 import itumulator.executable.Program;
-import itumulator.world.Location;
-import itumulator.world.World;
 
 import simulator.util.WorldLoader;
 import simulator.util.exceptions.InvalidWorldInputFileException;
@@ -46,7 +43,7 @@ public class Main {
         }
 
         Program p = wl.getProgram();
-        p.setDisplayInformation(RabbitHole.class, new DisplayInformation(Color.black, "hole"));
+        p.setDisplayInformation(OldRabbitHole.class, new DisplayInformation(Color.black, "hole"));
 
         List<Animal> animals = wl.getAnimals();
         List<NonBlockable> nonBlockables = wl.getNonBlockables();

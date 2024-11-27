@@ -2,14 +2,10 @@ package test;
 
 import itumulator.world.Location;
 import itumulator.world.World;
-import simulator.actors.Animal;
 import simulator.actors.Rabbit;
-import simulator.objects.holes.RabbitHole;
+import simulator.objects.holes.OldRabbitHole;
 import simulator.objects.plants.Grass;
 import simulator.util.PathFinder;
-
-import java.util.HashSet;
-import java.util.Set;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -100,7 +96,7 @@ public class RabbitTest {
     @Test
     public void seeksRabbitHoleAtNightTest() {
         Rabbit r = new Rabbit();
-        RabbitHole rh = new RabbitHole();
+        OldRabbitHole rh = new OldRabbitHole();
 
         Location startingLocation = new Location(0,0);
         Location rabbitHoleLocation = new Location(1,2);
@@ -151,7 +147,7 @@ public class RabbitTest {
 
         Rabbit r1 = new Rabbit();
         Rabbit r2 = new Rabbit();
-        RabbitHole rh = new RabbitHole();
+        OldRabbitHole rh = new OldRabbitHole();
 
         Location location = new Location(0,0);
 
