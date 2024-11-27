@@ -4,8 +4,11 @@ import itumulator.executable.DisplayInformation;
 import itumulator.executable.DynamicDisplayInformationProvider;
 import itumulator.world.Location;
 import itumulator.world.World;
+
 import java.awt.Color;
 import java.util.Set;
+
+import simulator.util.Utilities;
 
 public class Wolf extends Animal implements DynamicDisplayInformationProvider, Predator {
 
@@ -181,10 +184,11 @@ public class Wolf extends Animal implements DynamicDisplayInformationProvider, P
 
 
 // Wait for predator interface. We're currently not using this
-//    public void attack(Object prey, World world) {
+    @Override
+    public void attack(Object prey, World world) {
         //if in surrounding tiles??
         //target.takeDamage(x, world))
-//    }
+    }
 
 }
 
