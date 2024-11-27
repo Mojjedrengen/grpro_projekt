@@ -3,6 +3,7 @@ package simulator.objects.holes;
 
 import itumulator.world.Location;
 import itumulator.world.World;
+import org.jetbrains.annotations.NotNull;
 import simulator.actors.Animal;
 
 import java.util.Set;
@@ -48,6 +49,12 @@ public class RabbitHole extends Hole{
     }
 
     public RabbitHoleNetwork getNetwork() {return network;}
+
+    public boolean predatorNearby(@NotNull World world) {
+       Set<Location> neighbors = world.getSurroundingTiles(this.getLocation(world), 3);
+       Set<Predator> nearbyPredator = world.getAll(Predator.class, neighbors);
+       return !nearbyPredator.isEmpty();
+    }
 
     /**
      * Destroys the hole. Please use the Networks destroy hole Method

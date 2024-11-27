@@ -101,7 +101,7 @@ public class RabbitTest {
         Location startingLocation = new Location(0,0);
         Location rabbitHoleLocation = new Location(1,2);
 
-        r.assignHole(rh);
+        r.setAssignedNetwork(rh);
         this.w.setNight();
 
         this.w.setTile(startingLocation, r);
@@ -151,8 +151,8 @@ public class RabbitTest {
 
         Location location = new Location(0,0);
 
-        r1.assignHole(rh);
-        r2.assignHole(rh);
+        r1.setAssignedNetwork(rh);
+        r2.setAssignedNetwork(rh);
 
         this.w.setTile(location, rh);
 

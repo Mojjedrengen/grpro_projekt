@@ -41,6 +41,23 @@ public class RabbitHoleNetwork {
         }
     }
 
+    public Set<Location> getHoleLocation (World world) {
+        Set<Location> locations = new HashSet<>();
+        for (RabbitHole hole : this.entrances) {
+            locations.add(hole.getLocation(world));
+        }
+        return locations;
+    }
+
+    public RabbitHole getHoleFromLocation(World world, Location location) {
+        for (RabbitHole hole : this.entrances) {
+            if (hole.getLocation(world).equals(location)) {
+                return hole;
+            }
+        }
+        return null;
+    }
+
     public void animalEnters(Animal animal) {
         this.inhabitants.add(animal);
     }
