@@ -14,9 +14,9 @@ import itumulator.world.World;
 import itumulator.world.Location;
 
 import simulator.objects.NonBlockable;
-import simulator.objects.holes.RabbitHole;
 import simulator.actors.*;
-import simulator.actors.WolfPack;
+import simulator.objects.holes.RabbitHole;
+import simulator.objects.holes.WolfHole;
 import simulator.util.exceptions.*;
 import simulator.objects.plants.Grass;
 import simulator.objects.plants.Bush;
