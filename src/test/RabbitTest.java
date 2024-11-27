@@ -4,6 +4,7 @@ import itumulator.world.Location;
 import itumulator.world.World;
 import simulator.actors.Rabbit;
 import simulator.objects.holes.OldRabbitHole;
+import simulator.objects.holes.RabbitHole;
 import simulator.objects.plants.Grass;
 import simulator.util.PathFinder;
 
@@ -96,7 +97,7 @@ public class RabbitTest {
     @Test
     public void seeksRabbitHoleAtNightTest() {
         Rabbit r = new Rabbit();
-        OldRabbitHole rh = new OldRabbitHole();
+        RabbitHole rh = new RabbitHole();
 
         Location startingLocation = new Location(0,0);
         Location rabbitHoleLocation = new Location(1,2);
@@ -113,7 +114,7 @@ public class RabbitTest {
         r.act(this.w);
         r.act(this.w);
 
-        assertTrue(rh.getInhabitants().contains(r));
+        assertTrue(rh.getNetwork().getInhabitants().contains(r));
 
     }
 
@@ -147,7 +148,7 @@ public class RabbitTest {
 
         Rabbit r1 = new Rabbit();
         Rabbit r2 = new Rabbit();
-        OldRabbitHole rh = new OldRabbitHole();
+        RabbitHole rh = new RabbitHole();
 
         Location location = new Location(0,0);
 
@@ -159,8 +160,8 @@ public class RabbitTest {
         this.w.add(r1);
         this.w.add(r2);
 
-        rh.rabbitEntersNetwork(r1);
-        rh.rabbitEntersNetwork(r2);
+        rh.getNetwork().animalEnters(r1);
+        rh.getNetwork().animalEnters(r2);
 
         for(int i = 0; i < 100; i++) {
             r1.reproduce(w);

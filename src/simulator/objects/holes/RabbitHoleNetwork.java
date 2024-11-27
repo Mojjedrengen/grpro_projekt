@@ -78,8 +78,7 @@ public class RabbitHoleNetwork {
             }
         }
         if (!offSprings.isEmpty()) {
-            for (Iterator<Animal> it = offSprings.iterator(); it.hasNext();) {
-                Animal offspring = it.next();
+            for (Animal offspring : offSprings) {
                 this.animalEnters(offspring);
                 world.add(offspring);
             }

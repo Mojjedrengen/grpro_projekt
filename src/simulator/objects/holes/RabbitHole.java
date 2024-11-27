@@ -51,9 +51,10 @@ public class RabbitHole extends Hole{
     public RabbitHoleNetwork getNetwork() {return network;}
 
     public boolean predatorNearby(@NotNull World world) {
-       Set<Location> neighbors = world.getSurroundingTiles(this.getLocation(world), 3);
-       Set<Predator> nearbyPredator = world.getAll(Predator.class, neighbors);
-       return !nearbyPredator.isEmpty();
+        return true; // TODO: REMOVE THIS WHEN PREDATOR IS ADDED AND UNCOMMENT BELLOW
+        /*Set<Location> neighbors = world.getSurroundingTiles(this.getLocation(world), 3);
+        Set<Predator> nearbyPredator = world.getAll(Predator.class, neighbors);
+        return !nearbyPredator.isEmpty();*/
     }
 
     /**
