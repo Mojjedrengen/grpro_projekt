@@ -4,13 +4,12 @@ import itumulator.executable.DisplayInformation;
 import itumulator.executable.DynamicDisplayInformationProvider;
 import itumulator.world.Location;
 import itumulator.world.World;
+import java.awt.Color;
 import java.util.Random;
 import java.util.Set;
-
-import java.awt.Color;
-import simulator.objects.plants.Grass;
 import simulator.objects.NonBlockable;
 import simulator.objects.holes.RabbitHole;
+import simulator.objects.plants.Grass;
 import simulator.util.Utilities;
 
 /**
@@ -44,7 +43,7 @@ public class Rabbit extends Animal implements DynamicDisplayInformationProvider 
 
 
     public Rabbit() {
-        super(20, 9, Grass.class); // Call the Animal superclass constructor
+        super(20, 9, Grass.class, 25); // Call the Animal superclass constructor
         this.assignedHole = null; // No hole assigned initially
         // PathFinder expects starting location, setting to null for now
         this.hasAttemptetToReproduce = false;
