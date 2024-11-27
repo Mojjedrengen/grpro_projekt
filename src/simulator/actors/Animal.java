@@ -1,13 +1,12 @@
 package simulator.actors;
 
 import itumulator.simulator.Actor;
-import itumulator.world.World;
 import itumulator.world.Location;
-import java.util.Set;
+import itumulator.world.World;
 import java.util.ArrayList;
 import java.util.Random;
-
-import simulator.objects.NonBlockable;
+import java.util.Set;
+import simulator.objects.Carcass;
 import simulator.objects.plants.Grass;
 import simulator.util.PathFinder;
 
@@ -20,6 +19,7 @@ public abstract class Animal implements Actor {
 
     private int energy;
     final int maxEnergy;
+    protected int health;
 
     protected int age;
     final int maxAge;
@@ -36,8 +36,9 @@ public abstract class Animal implements Actor {
      * @param maxAge - the oldest an animal can get before dying
      * @param foodType - what type of food does the animal eat
      */
-    public Animal(int startEnergy, int maxAge, Class<?> foodType) {
+    public Animal(int startEnergy, int maxAge, Class<?> foodType, int initialHealth) {
         this.energy = startEnergy;
+        this.health = initialHealth;
         this.maxEnergy = startEnergy;
         this.age = 0;
         this.hasEatenToday = false;
@@ -48,10 +49,10 @@ public abstract class Animal implements Actor {
     }
 
     /**
-     * Animal constructor defaults to 100 energy, max age of 10 and grass as its food type
+     * Animal constructor defaults to 100 energy, max age of 10, default health of 50 and grass as its food type
      */
     public Animal() {
-        this(100, 10, Grass.class);
+        this(100, 10, Grass.class, 50);
     }
 
     /**
@@ -61,6 +62,10 @@ public abstract class Animal implements Actor {
      */
     public int getEnergy() {
         return energy;
+    }
+
+    public int getHealth() {
+        return health;
     }
 
     /**
@@ -95,11 +100,45 @@ public abstract class Animal implements Actor {
      */
     public void killAnimal(World world) {
         if(world != null) {
-            //world.remove(this);
-            world.delete(this);
-            System.out.println("Animal died");
+            
+            Carcass carcass;
+            if(this instanceof Rabbit) { //Changes carcass display img depending on rabbit or other
+                carcass = new Carcass("carcass-small");
+            } else {
+                carcass = new Carcass("carcass");
+            }
+            replaceWithCarcass(carcass, world);
         }
     }
+
+    public void takeDamage(int damage, World world) {
+        this.health = health - damage;
+        if (health <= 0) {
+            this.killAnimal(world);
+        }
+    }
+
+    public void setHealth(int health, World world) {
+        this.health = health;
+        if (health <= 0) {
+            this.killAnimal(world);
+        }
+    }
+
+    private void replaceWithCarcass(Carcass carcass, World world) {
+        if (world.isOnTile(this)) { //if it isn't in a hole
+        Location currentLocation = world.getLocation(this);
+        if(world != null) { //If world isnt null
+            world.delete(this); //kill the mf
+            if(!world.containsNonBlocking(currentLocation) && world.isTileEmpty(currentLocation)) //If there isnt already a nonblocking object and the tile is empty
+            {
+                world.setTile(currentLocation, carcass); //add a carcass to location
+            }
+            }
+        }
+            
+        }
+    
 
     /**
      * Random wander behaviour.
