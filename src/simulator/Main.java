@@ -27,7 +27,7 @@ public class Main {
         final int delay = 200;
         WorldLoader wl = null;
         try {
-            wl = new WorldLoader("resources/inputs/week-1/new_input.txt", windowResolution, delay);
+            wl = new WorldLoader("resources/inputs/week-1/wolf_testing.txt", windowResolution, delay);
         }catch(InvalidWorldInputFileException e) {
             System.out.println("WorldLoader: Syntax error in input file");
             System.out.println("Line number: " + e.getLineNumber());
@@ -47,6 +47,7 @@ public class Main {
 
         Program p = wl.getProgram();
         p.setDisplayInformation(RabbitHole.class, new DisplayInformation(Color.black, "hole"));
+        p.setDisplayInformation(WolfHole.class, new DisplayInformation(Color.black, "hole"));
 
         List<Animal> animals = wl.getAnimals();
         List<NonBlockable> nonBlockables = wl.getNonBlockables();

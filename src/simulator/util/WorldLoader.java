@@ -16,6 +16,7 @@ import itumulator.world.Location;
 import simulator.objects.NonBlockable;
 import simulator.objects.holes.RabbitHole;
 import simulator.actors.*;
+import simulator.actors.WolfPack;
 import simulator.util.exceptions.*;
 import simulator.objects.plants.Grass;
 import simulator.objects.plants.Bush;
@@ -131,12 +132,13 @@ public class WorldLoader {
     }
 
     /**
-     * Determines dynamic class type of animal from name of animal
+     * Determines dynamic class type of animal from name of animal.
+     * Returns supplier lambda function which calls the constructor of the animal
      *
      * @param unknownObjectString - string containing animal name
-     * @return dynamic animal type or null if the animal does not exist
+     * @return dynamic animal supplier or null if the animal does not exist
      */
-    private Supplier<? extends Animal> parseAnimal(String unknownObjectString) {
+    private Supplier<? extends Animal> parseAnimal(final String unknownObjectString) {
         switch(unknownObjectString) {
             case "rabbit":
             return () -> { return new Rabbit(); };
@@ -151,11 +153,12 @@ public class WorldLoader {
 
     /**
      * Determines dynamic class type of NonBlockable from name of NonBlockable
+     * Returns supplier lambda functoin which calls constructor of the nonblockable
      *
      * @param unknownObjectString - string containing NonBlockable name
-     * @return dynamic NonBlockable type or null if the NonBlockable does not exist
+     * @return dynamic NonBlockable supplier or null if the NonBlockable does not exist
      */
-    private Supplier<? extends NonBlockable> parseNonBlockable(String unknownObjectString) {
+    private Supplier<? extends NonBlockable> parseNonBlockable(final String unknownObjectString) {
         switch(unknownObjectString) {
             case "grass":
             return () -> { return new Grass(); };
@@ -175,7 +178,7 @@ public class WorldLoader {
      * @param unknownNumberOrRange - String that contains trimmed number or range to parse such as "2" or "3-5"
      * @return the parsed number or -1 on error
      */
-    private int parseObjectNumber(String unknownNumberOrRange) {
+    private int parseObjectNumber(final String unknownNumberOrRange, final Random random) {
 
         // Check if single number or range
 
@@ -191,7 +194,7 @@ public class WorldLoader {
             final int max = Integer.parseInt(rangeString[1]);
 
             if(min > max) return -1;
-            return (new Random()).nextInt(min, max + 1);
+            return random.nextInt(min, max + 1);
         }
         return -1;
     }
@@ -240,10 +243,8 @@ public class WorldLoader {
      * @param line - the line to parse
      * @param lineNumber - the line number for the line. Only used for debugging purposes
      */
-    private void parseLine(final String rawLine, final int lineNumber, final Random random) { 
-        // Lambda functions in java either want everything to be a constat or wrapped in an object
-        // C++ lambdas > Java lambdas and it's by a lot
-        String line = rawLine.toLowerCase();
+    private void parseLine(String line, final int lineNumber, final Random random) { 
+        line = line.toLowerCase();
         final String[] tokens = line.split(" ");
 
         // This is to account for two types of inputs:
@@ -254,7 +255,7 @@ public class WorldLoader {
 
         // Parses the number or range that comes after object name, e.g. "Rabbit 2" or "Rabbit 5-10"
         // In case of range, parseObjectNumber returns random number within that range
-        final int numberOfObjects = parseObjectNumber(tokens[1].trim());
+        final int numberOfObjects = parseObjectNumber(tokens[1].trim(), random);
         if(numberOfObjects == -1)
         throw new InvalidWorldInputFileException("Invalid number or range of objects", line, lineNumber);
 
@@ -266,39 +267,46 @@ public class WorldLoader {
             objectLocation = this.parseCoordinate(tokens[2].trim());
         }else objectLocation = null;
 
-        String unknownObjectString = tokens[0].trim();
+        final String unknownObjectString = tokens[0].trim();
 
         { // Intentional useless identation for readability. 
 
             // Check if object is an animal
-            Supplier<? extends Animal> animal = parseAnimal(unknownObjectString);
+            Supplier<? extends Animal> animalConstructor = parseAnimal(unknownObjectString);
             // Check if object is an nonblockable
-            Supplier<? extends NonBlockable> nonBlockable = parseNonBlockable(unknownObjectString);
+            Supplier<? extends NonBlockable> nonBlockableConstructor = parseNonBlockable(unknownObjectString);
 
-            // TODO see if we can somehow use lambdas to cut down on similar code
-            if(animal != null) {
-                Animal newAnimal;
-                // if objectLocation is not null, then we know for sure that numberOfObjects is 1
-                if(objectLocation != null && this.world.isTileEmpty(objectLocation)) {
-                    newAnimal = animal.get();
-                    this.animals.add(newAnimal);
-                    this.world.setTile(objectLocation, newAnimal);
-                }else for(int i = 0; i < numberOfObjects; i++) {
-                    newAnimal = animal.get();
-                    this.animals.add(newAnimal);
-                    this.world.setTile( Utilities.getRandomEmptyLocation(random, this.world, this.worldSize), newAnimal);
+            if(animalConstructor != null) {
+                Animal newAnimal = animalConstructor.get();
+                WolfPack wolfPack = null;
+
+                if(newAnimal instanceof Wolf && numberOfObjects > 1) {
+                    wolfPack = new WolfPack(this.world);
                 }
-            }else if(nonBlockable != null) {
+
+                // Already cheked that if objectLocation is not null, then we know for sure that numberOfObjects is 1
+                for(int i = 0; i < numberOfObjects; i++) {
+                    newAnimal = animalConstructor.get();
+                    this.animals.add(newAnimal);
+                    this.world.setTile((objectLocation != null && this.world.isTileEmpty(objectLocation)) ? 
+                        objectLocation : 
+                        Utilities.getRandomEmptyLocation(random, this.world, this.worldSize), 
+                        newAnimal
+                    );
+                    
+                    if(wolfPack != null) {
+                        ((Wolf)newAnimal).joinWolfPack(wolfPack);
+                    } 
+                }
+            }else if(nonBlockableConstructor != null) {
+
                 NonBlockable newNonBlockable;
-                // if objectLocation is not null, then we know for sure that numberOfObjects is 1
-                if(objectLocation != null && !this.world.containsNonBlocking(objectLocation)) {
-                    newNonBlockable = nonBlockable.get();
+                for(int i = 0; i < numberOfObjects; i++) {
+                    newNonBlockable = nonBlockableConstructor.get();
                     this.nonblockables.add(newNonBlockable);
-                    this.world.setTile(objectLocation, newNonBlockable);
-                }else for(int i = 0; i < numberOfObjects; i++) {
-                    newNonBlockable = nonBlockable.get();
-                    this.nonblockables.add(newNonBlockable);
-                    this.world.setTile( Utilities.getRandomEmptyNonBlockingLocation(random, this.world, this.worldSize), newNonBlockable);
+                    this.world.setTile((objectLocation != null && !this.world.containsNonBlocking(objectLocation)) ? 
+                        objectLocation :  
+                        Utilities.getRandomEmptyNonBlockingLocation(random, this.world, this.worldSize), newNonBlockable);
                 }
             }else throw new InvalidWorldInputFileException("Unknown Animal/NonBlockable", line, lineNumber);
 
@@ -309,3 +317,22 @@ public class WorldLoader {
 }
 
 
+// Alternative we can use during construction of animals/nonblockabes to reduce repetion of code.
+// Just  not very readable
+//    private <T> void addNewObject(
+//        final int numberOfObjects,
+//        final Location objectLocation,
+//        final Supplier<T> objectSupplier,
+//        final Function<Location, Boolean> objectLocationCondition,
+//        final Consumer<T> objectListAdder,
+//        final Supplier<Location> randomLocationSupplier ) {
+//
+//        for(int i = 0; i < numberOfObjects; i++) {
+//            T newObject = objectSupplier.get();
+//            objectListAdder.accept(newObject);
+//            this.world.setTile(
+//                objectLocationCondition.apply(objectLocation) ? objectLocation : randomLocationSupplier.get(),
+//                newObject );
+//        }
+//
+//    }

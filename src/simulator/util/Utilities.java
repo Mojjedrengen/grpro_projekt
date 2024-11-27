@@ -41,6 +41,11 @@ public class Utilities {
         return array.get(array.size() - 1);
     }
 
+    public static <T> boolean locationContainsAnimal(World world, Location location, Class<T> type) {
+        if(world.isTileEmpty(location)) return false;
+
+        return type.isInstance(world.getTile(location));
+    }
     public static <T> boolean locationContainsNonBlockingType(World world, Location location, Class<T> type) {
         if(!world.containsNonBlocking(location)) return false;
 
@@ -74,8 +79,7 @@ public class Utilities {
         return location;
     }
     public static Location getRandomEmptyLocation(final World world, final int worldSize) {
-        Random random = new Random();
-        return getRandomEmptyLocation(random, world, worldSize);
+        return getRandomEmptyLocation(new Random(), world, worldSize);
     }
 
     public static Location getRandomEmptyNonBlockingLocation(final Random random, final World world, final int worldSize) {
@@ -95,8 +99,7 @@ public class Utilities {
     }
 
     public static Location getRandomEmptyNonBlockingLocation(final World world, final int worldSize) {
-        Random random = new Random();
-        return getRandomEmptyNonBlockingLocation(random, world, worldSize);
+        return getRandomEmptyNonBlockingLocation(new Random(), world, worldSize);
     }
 
 }
