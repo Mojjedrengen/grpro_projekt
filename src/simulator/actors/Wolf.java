@@ -2,16 +2,12 @@ package simulator.actors;
 
 import itumulator.executable.DisplayInformation;
 import itumulator.executable.DynamicDisplayInformationProvider;
-import itumulator.world.World;
 import itumulator.world.Location;
-
+import itumulator.world.World;
 import java.awt.Color;
 import java.util.Set;
 
-import simulator.util.Utilities;
-import simulator.objects.holes.WolfHole;
-
-public class Wolf extends Animal implements DynamicDisplayInformationProvider {
+public class Wolf extends Animal implements DynamicDisplayInformationProvider, Predator {
 
     static final DisplayInformation adultWolf = new DisplayInformation(Color.black, "wolf");
     static final DisplayInformation babyWolf = new DisplayInformation(Color.black, "wolf-small");
@@ -19,8 +15,8 @@ public class Wolf extends Animal implements DynamicDisplayInformationProvider {
     WolfPack wolfPack;
 
     public Wolf() {
-        // 50 max energy, lives until age of 12, eats rabbits
-        super(50, 12, Rabbit.class);
+        // 50 max energy, lives until age of 12, eats rabbits, 50 health
+        super(50, 12, Rabbit.class, 50);
         wolfPack = null;
     }
 
@@ -183,6 +179,12 @@ public class Wolf extends Animal implements DynamicDisplayInformationProvider {
         super.killAnimal(world);
     }
 
+
+// Wait for predator interface. We're currently not using this
+//    public void attack(Object prey, World world) {
+        //if in surrounding tiles??
+        //target.takeDamage(x, world))
+//    }
 
 }
 

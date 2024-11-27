@@ -3,7 +3,6 @@ package simulator.objects.plants;
 import itumulator.executable.DisplayInformation;
 import itumulator.executable.DynamicDisplayInformationProvider;
 import itumulator.world.World;
-
 import java.awt.*;
 import java.util.Random;
 
@@ -14,8 +13,8 @@ import java.util.Random;
  */
 public class Grass extends Plant implements DynamicDisplayInformationProvider {
 
-    static final DisplayInformation yellowGrass = new DisplayInformation(Color.yellow);
-    static final DisplayInformation greenGrass = new DisplayInformation(Color.green);
+    static final DisplayInformation yellowGrass = new DisplayInformation(Color.yellow, "grass1");
+    static final DisplayInformation greenGrass = new DisplayInformation(Color.green, "grass2");
 
     public Grass() {
         // spread chance 10/100, growth chance 25/100, how to call the grass constructor
