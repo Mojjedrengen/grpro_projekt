@@ -24,7 +24,7 @@ public class Main {
     public static void main(String[] args) {
 
         final int windowResolution = 800;
-        final int delay = 200;
+        final int delay = 400;
         WorldLoader wl = null;
         try {
             wl = new WorldLoader("resources/inputs/week-1/wolf_testing.txt", windowResolution, delay);

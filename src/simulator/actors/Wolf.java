@@ -7,8 +7,11 @@ import itumulator.world.World;
 
 import java.awt.Color;
 import java.util.Set;
+import java.util.function.Function;
+import java.util.function.Consumer;
 
 import simulator.util.Utilities;
+import simulator.objects.Carcass;
 
 public class Wolf extends Animal implements DynamicDisplayInformationProvider, Predator {
 
@@ -76,31 +79,30 @@ public class Wolf extends Animal implements DynamicDisplayInformationProvider, P
 
     }
 
-
-    protected void attackIfInRange(World world, Set<Location> surroundingLocations) {
+    protected void attackIfInRange(World world, Set<Location> surroundingLocations, Function<Object, Boolean> attackCondition ) {
         surroundingLocations.forEach( l -> {
-            if(Utilities.locationContainsAnimal(world, l, this.foodType)) {
-
-            ((Animal)world.getTile(l)).killAnimal(world);
-                // For now, wolf will simply gain energy. Once carcass is added, wolf will eat that instead
-                this.hasEatenToday = true;
-                this.increaseEnergy(40);
-                // Only kill one rabbit per tick
+            final Object obj = world.getTile(l);
+            if(attackCondition.apply(obj)) {
+                // lambda function tells us this is valid Animal to typecast
+                this.attack((Animal)obj, world);
+                // Return to avoid attacking multiple animals in one tick
                 return;
             }
         });
     }
 
-    //    protected void eatCarcassIfInRange(World world, Set<Location> surroundingLocations) {
-    //        surroundingLocations.forEach( l -> {
-    //            if(Utilities.locationContainsAnimal(world, l, Carcass.class)) {
-    //                ((Animal)world.getTile(l)).killAnimal(world);
-    //                // Only kill one rabbit per tick
-    //                return;
-    //            }
-    //        });
-    //
-    //    }
+    protected void eatCarcassIfInRange(World world, Set<Location> surroundingLocations) {
+        surroundingLocations.forEach( l -> {
+            if(world.containsNonBlocking(l) && world.getNonBlocking(l) instanceof Carcass carcass) {
+                carcass.consume(world);
+                this.ate();
+                this.increaseEnergy(30);
+                // Only eat once per time step 
+                return;
+            }
+        });
+
+    }
 
     protected void dayTimeBehaviour(World world) {
         if(this.isInHole()) {
@@ -109,24 +111,71 @@ public class Wolf extends Animal implements DynamicDisplayInformationProvider, P
             this.searchForWolfPack(world);
         }
 
+        final Location currentLocation = world.getLocation(this);
+        this.pathFinder.setLocation(currentLocation);
+
+        // Try to generate path to Carcass, if none was found then try the same for Rabbit instead
+        Runnable generatePathToFood = () -> {
+            if(!this.pathFinder.findPathToNearest(Carcass.class, world))
+            this.pathFinder.findPathToNearestBlocking(this.foodType, world);
+        };
+
         // If hasn't eaten today and current path doesn't lead to rabbit,
         // then generate a path to nearest rabbit
         if(!this.hasEatenToday) {
-            if(!this.pathFinder.hasPath()) {
-                this.findPathToNearestFood(world);
-            }else if(!Utilities.locationContainsAnimal(world, this.pathFinder.getFinalLocationInPath(), this.foodType)) {
-                this.findPathToNearestFood(world);
+            if(!this.pathFinder.hasPath()){
+                // If can't find Carcass, then look for Rabbit
+                generatePathToFood.run();
+            }else {
+                final Location destinatinInPath = this.pathFinder.getFinalLocationInPath();
+
+                // If path doesn't lead to Rabbit or Carcass, then generate new path
+                if(!(world.getTile(destinatinInPath) instanceof Rabbit) 
+                   && !( Utilities.locationContainsNonBlockingType(world, destinatinInPath, Carcass.class) ))
+                    generatePathToFood.run();
             }
+
         }
 
 
+        final Set<Location> surroundingLocations = world.getSurroundingTiles(currentLocation);
         // Only eat if energy isn't max or hasn't eaten today
         if(this.getEnergy() != this.maxEnergy || !this.hasEatenToday){
             // If Rabbit in attack range, then attack it
-            final Set<Location> surroundingLocations = world.getSurroundingTiles();
-            this.attackIfInRange(world, surroundingLocations);
-            // Carcass hasn't been added yet
-            //this.eatCarcassIfInRange(world, surroundingLocations);
+            this.attackIfInRange(world, surroundingLocations, 
+            (obj) -> {
+                return obj instanceof Rabbit;
+            });
+
+            // Carcass is NonBlockable, so Wolf should also be allowed to stand on top
+            surroundingLocations.add(currentLocation);
+            this.eatCarcassIfInRange(world, surroundingLocations);
+        }else {
+            // TODO make this more readable
+            // Attack any wolf that isn't in this wolf's wolfpack and wanders nearby
+            this.attackIfInRange(world, surroundingLocations, 
+            (obj) -> {
+                    if(obj instanceof Wolf wolf && wolf.wolfPack != this.wolfPack) {
+                        return true;
+                    }
+                    return false;
+            });
+
+            // TODO make this more readable
+            // If wolf has no path, then seek nearest wolfpack member
+            if(!this.pathFinder.hasPath() && this.hasWolfPack() )  {
+                boolean res = this.pathFinder.findPath(
+                (location) -> {
+                        for(Location t : world.getSurroundingTiles(location)) {
+                            if(world.getTile(t) instanceof Wolf wolf && wolf != this && wolf.wolfPack == this.wolfPack) return true;
+                        }
+                        return false;
+
+                    }, 
+                    world 
+                );
+            }
+
         }
 
         if(this.pathFinder.hasPath()) {
@@ -135,6 +184,7 @@ public class Wolf extends Animal implements DynamicDisplayInformationProvider, P
         }else {
             this.wander(world);
         }
+
 
     }
 
@@ -147,7 +197,7 @@ public class Wolf extends Animal implements DynamicDisplayInformationProvider, P
                 this.searchForWolfPack(world);
             }
         }else {
-            // Attempt to reproduce
+            this.wolfPack.getHole().reproduce(world);
         }
     }
 
@@ -183,11 +233,9 @@ public class Wolf extends Animal implements DynamicDisplayInformationProvider, P
     }
 
 
-// Wait for predator interface. We're currently not using this
     @Override
-    public void attack(Object prey, World world) {
-        //if in surrounding tiles??
-        //target.takeDamage(x, world))
+    public void attack(Animal prey, World world) {
+        prey.takeDamage(30, world);
     }
 
 }

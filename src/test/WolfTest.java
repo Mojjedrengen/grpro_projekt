@@ -7,6 +7,7 @@ import simulator.actors.Wolf;
 import simulator.actors.WolfPack;
 import simulator.actors.Rabbit;
 import simulator.objects.holes.WolfHole;
+import simulator.objects.Carcass;
 import simulator.util.PathFinder;
 
 import java.util.HashSet;
@@ -98,7 +99,7 @@ public class WolfTest {
     }
 
     @Test
-    public void wolfEatsRabbitTest() {
+    public void wolfKillsRabbitTest() {
         this.w.step();
         Location wolfLocation = new Location(0,0);
         Location rabbitLocation = new Location(0,1);
@@ -110,12 +111,14 @@ public class WolfTest {
         this.w.setTile(rabbitLocation, rabbit);
 
         assertFalse(this.w.isTileEmpty(rabbitLocation));
+        assertTrue(!this.w.containsNonBlocking(rabbitLocation));
         assertTrue(this.w.getTile(rabbitLocation) instanceof Rabbit);
 
         this.w.setCurrentLocation(wolfLocation);
         wolf.act(this.w);
-        // TODO update to check for Carcass once that is added
-        assertTrue(this.w.isTileEmpty(rabbitLocation));
+        assertTrue(this.w.containsNonBlocking(rabbitLocation));
+        assertTrue(this.w.getNonBlocking(rabbitLocation) instanceof Carcass);
+        assertFalse( this.w.getTile(rabbitLocation) instanceof Rabbit );
     }
 
     @Test
@@ -175,6 +178,102 @@ public class WolfTest {
         }
 
         assertTrue(wh.getInhabitants().size() > 2);
+
+    }
+
+    @Test
+    public void wolfEatsCarcassTest() {
+        this.w.setDay();
+        this.w.step();
+
+        Wolf w1 = new Wolf();
+        Location wLocation = new Location(0,0);
+
+        Carcass c = new Carcass(Carcass.bigCarcass);
+        Location cLocation = new Location(0,0);
+
+        this.w.setTile(wLocation, w1);
+        this.w.setTile(cLocation, c);
+
+        final int currentMeat = c.getMeatLeft();
+        this.w.setCurrentLocation(wLocation);
+        w1.act(this.w);
+
+        assertTrue(currentMeat != c.getMeatLeft());
+    }
+
+    /**
+     * If wolf has eaten and it is day, then it will try to follow member
+     */
+    @Test
+    public void wolfFollowsWolfPackMemberTest() {
+        this.w.setDay();
+        this.w.step();
+
+        Wolf w1 = new Wolf();
+        Wolf w2 = new Wolf();
+        Location w1LocationStart = new Location(0,0);
+        Location w2LocationStart = new Location(4,4);
+
+        Location holeLocation = new Location(4,4);
+        WolfHole wh = new WolfHole();
+        WolfPack wp = new WolfPack(wh);
+        this.w.setTile(holeLocation, wh);
+
+        this.w.setTile(w2LocationStart, w2);
+        this.w.setTile(w1LocationStart, w1);
+        w1.joinWolfPack(wp);
+        w2.joinWolfPack(wp);
+
+        // Ensure that wolves aren't hungry
+        w1.ate();
+        w2.ate();
+
+        PathFinder w1pf = w1.getPathFinder();
+        assertTrue(!w1pf.hasPath());
+
+        this.w.setCurrentLocation(w1LocationStart);
+        w1.act(this.w);
+
+        boolean result = false;
+        Location destinationPathFinder = w1pf.getFinalLocationInPath();
+
+        for(Location location : this.w.getSurroundingTiles(w2LocationStart)) {
+            if(destinationPathFinder.equals(location)) result = true;
+        }
+
+        assertTrue(result);
+
+    }
+
+    @Test
+    public void wolfAttacksNonWolfPackMembersTest() {
+        this.w.setDay();
+        this.w.step();
+
+        Wolf w1 = new Wolf();
+        Wolf w2 = new Wolf();
+        Location w1LocationStart = new Location(0,0);
+        Location w2LocationStart = new Location(0,1);
+
+        this.w.setTile(w1LocationStart, w1);
+        this.w.setTile(w2LocationStart, w2);
+
+        WolfPack wp1 = new WolfPack(this.w);
+        WolfPack wp2 = new WolfPack(this.w);
+
+        w1.joinWolfPack(wp1);
+        w2.joinWolfPack(wp2);
+
+        assertTrue( w2.getHealth() == w2.maxHealth );
+
+        this.w.setCurrentLocation(w1LocationStart);
+        // If wolf 1 is hungry, then it will priotize trying to find 
+        // rabbit or carcass to eat
+        w1.ate();
+        w1.act(this.w);
+
+        assertFalse( w2.getHealth() == w2.maxHealth );
 
     }
 
