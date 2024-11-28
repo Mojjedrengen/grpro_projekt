@@ -1,4 +1,5 @@
 package simulator.actors;
+
 import itumulator.executable.DisplayInformation;
 import itumulator.executable.DynamicDisplayInformationProvider;
 import itumulator.world.Location;
@@ -17,112 +18,108 @@ public class Bear extends Animal implements DynamicDisplayInformationProvider, P
     private Set<Location> territory;
 
     public Bear() {
-        // 50 max energy, lives for 25 years, gets 100 health
-        // Bears eat mostly berries from bushes, but can also hunt so we need to take that into accout
-        super(50, 25, Bush.class, 100);
+        super(50, 25, Bush.class, 100); // 50 max energy, 25 max age, eats bushes, 100 health
         this.territory = new HashSet<>();
     }
-    
-    /** Establish a territory in a 3 tile radius around current location
-     * @param world reference to the world
-     */
-    private void establishTerritory(World world) {
+
+    private void establishTerritory(World world) { //Establishes a territory if no territory exists
         Location currentLocation = world.getLocation(this);
-        if (territory.isEmpty()) { //Make check to see if other territory is there already
+        if (territory.isEmpty()) {
             this.territory = world.getSurroundingTiles(currentLocation, 3);
         }
     }
-    //Check if given location is within bears territory
-    private boolean isInTerritory(Location location) {
+
+    private boolean isInTerritory(Location location) { //Returns if location is in territory
         return territory.contains(location);
     }
 
-    private void attackIfInRange(World world, Set<Location> surroundingLocations, Function<Object, Boolean> attackCondition) { //Wolf and bear share this, move to predator perhaps
-    for (Location location : surroundingLocations) {
-        Object obj = world.getTile(location);
-        if (attackCondition.apply(obj) && obj instanceof Animal animal) {
-            this.attack(animal, world);
-            break; 
+    private void attackIfInRange(World world, Set<Location> surroundingLocations, Function<Object, Boolean> attackCondition) { //Attacks animals in range
+        for (Location location : surroundingLocations) {
+            Object obj = world.getTile(location);
+            if (attackCondition.apply(obj) && obj instanceof Animal animal) {
+                this.attack(animal, world);
+                break;
+            }
         }
     }
-}
 
-    private void hunt(World world, Set<Location> surroundingLocations) {
-        this.attackIfInRange(world, surroundingLocations, obj -> 
-        obj instanceof Rabbit || obj instanceof Wolf
-    );
+    private void hunt(World world, Set<Location> surroundingLocations) { //Calls attackIfInRange
+        this.attackIfInRange(world, surroundingLocations, obj -> obj instanceof Rabbit || obj instanceof Wolf);
     }
 
-    private void eatBerries(World world, Set<Location> surroundingLocations) {
-        surroundingLocations.forEach(location -> {
-            // Check for a bush with berries
+    private void eatBerries(World world, Set<Location> surroundingLocations) { //Eats berries if theyre in surroundinglocation set aka territory
+        for (Location location : surroundingLocations) {
             if (world.containsNonBlocking(location) &&
                 world.getNonBlocking(location) instanceof Bush bush &&
-                bush.getCurrentStage() == Bush.Stage.RIPE) {
-                // Consume berries
+                bush.getCurrentStage() == Bush.Stage.RIPE && this.getEnergy() != this.maxEnergy) {
                 bush.consume(world);
                 this.ate();
                 this.increaseEnergy(20);
+                return;
             }
-        });
+        }
     }
 
-    private void daytimeBehavior(World world) {
-        // Establish territory if not already done
+    private void daytimeBehavior(World world) { //Daytime behavior
         this.establishTerritory(world);
 
         Location currentLocation = world.getLocation(this);
         Set<Location> surroundingLocations = world.getSurroundingTiles(currentLocation);
 
-        // Attempt to eat berries first
         this.eatBerries(world, surroundingLocations);
 
-        // If no berries or not at max energy, hunt for food
         if (this.getEnergy() < this.maxEnergy) {
             this.hunt(world, surroundingLocations);
         }
 
-        // If no path exists or the path destination is outside the territory, generate a new path
         if (!this.pathFinder.hasPath() || !this.isInTerritory(this.pathFinder.getFinalLocationInPath())) {
-            this.pathFinder.setLocation(currentLocation);
-        
-            // Find a path to berries, rabbits, or wolves
+            this.pathFinder.setLocation(currentLocation); //TODO Idk if this is correct or not, i just looked at the methods for pathfinder and hoped for the best, might need a redo
+
             boolean pathFound = this.pathFinder.findPathToNearest(Bush.class, world);
             if (!pathFound) {
                 pathFound = this.pathFinder.findPathToNearestBlocking(Rabbit.class, world);
                 if (!pathFound) {
-                    pathFound = this.pathFinder.findPathToNearestBlocking(Wolf.class, world);
+                    this.pathFinder.findPathToNearestBlocking(Wolf.class, world);
                 }
             }
-        
-            // If no path was found, wander
+
             if (!pathFound) {
                 this.wander(world);
             }
         }
-        
+
+        if (this.pathFinder.hasPath()) {
+            Location nextStep = this.pathFinder.getPath().poll();
+            if (world.isTileEmpty(nextStep)) {
+                world.move(this, nextStep);
+            }
+        } else {
+            this.wander(world);
+        }
     }
 
-    /**
-     * Bear's nighttime behavior: returns to territory and rests.
-     * @param world Reference to the world
-     */
     private void nighttimeBehavior(World world) {
-        if (!isInTerritory(world.getLocation(this))) {
-            this.pathFinder.setLocation(world.getLocation(this));
-            Location territoryCenter = this.territory.iterator().next(); // Arbitrary point in the territory
-            this.pathFinder.findPathToLocation(territoryCenter, world);
+        Location currentLocation = world.getLocation(this);
+
+        if (!isInTerritory(currentLocation)) {
+            Location territoryCenter = this.territory.iterator().next();
+
+            this.pathFinder.setLocation(currentLocation);
+            if (!this.pathFinder.hasPath() || !this.pathFinder.getFinalLocationInPath().equals(territoryCenter)) {
+                this.pathFinder.findPathToLocation(territoryCenter, world);
+            }
+
+            if (this.pathFinder.hasPath()) {
+                Location nextStep = this.pathFinder.getPath().poll();
+                if (world.isTileEmpty(nextStep)) {
+                    world.move(this, nextStep);
+                }
+            }
         } else {
-            // Clear path at night to reset behavior for the next day
             this.pathFinder.clearPath();
         }
     }
-    
 
-    /**
-     * Bear's `act` method to define its behavior per simulation step.
-     * @param world Reference to the world
-     */
     @Override
     public void act(World world) {
         if (world.isDay()) {
@@ -131,25 +128,20 @@ public class Bear extends Animal implements DynamicDisplayInformationProvider, P
             this.nighttimeBehavior(world);
         }
 
-        // End-of-day logic
         if (world.getCurrentTime() == 0) {
             this.decreaseEnergy(this.getAge() + (this.hasEatenToday ? 0 : 15), world);
             this.resetHunger();
         }
     }
 
-    
-
     @Override
     public DisplayInformation getInformation() {
-        if(this.age > 10) return Bear.adultBear;
+        if (this.age > 10) return Bear.adultBear;
         return Bear.babyBear;
     }
 
     @Override
     public void attack(Animal prey, World world) {
-        prey.takeDamage(40, world);
+        prey.takeDamage(40, world); //Bear does big 40
     }
-
 }
-
