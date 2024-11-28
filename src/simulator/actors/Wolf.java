@@ -4,15 +4,13 @@ import itumulator.executable.DisplayInformation;
 import itumulator.executable.DynamicDisplayInformationProvider;
 import itumulator.world.Location;
 import itumulator.world.World;
-
 import java.awt.Color;
-import java.util.Set;
 import java.util.Random;
+import java.util.Set;
 import java.util.function.Function;
-
-import simulator.util.Utilities;
 import simulator.objects.Carcass;
 import simulator.objects.holes.WolfHole;
+import simulator.util.Utilities;
 
 /** The Wolf call represents a wolf. They have 50 max energy, live until 12,
  * eat carcasses, hunt rabbits and have 50 health points
@@ -63,6 +61,10 @@ Predator {
 
         this.wolfPack = wolfPack;
         wolfPack.addMember(this);
+    }
+
+    protected boolean isEnemyWolf(Object obj) { //To simplify other code
+        return obj instanceof Wolf wolf && wolf.wolfPack != this.wolfPack;
     }
 
     /**
@@ -169,12 +171,11 @@ Predator {
      */
     protected void eatCarcassIfInRange(World world, Set<Location> surroundingLocations) {
         surroundingLocations.forEach( l -> {
-            if(world.containsNonBlocking(l) && world.getNonBlocking(l) instanceof Carcass carcass) {
+            if(world.containsNonBlocking(l) && world.getNonBlocking(l) instanceof Carcass carcass && this.getEnergy() != this.maxEnergy) {
                 carcass.consume(world);
                 this.ate();
                 this.increaseEnergy(30);
                 // Only eat once per time step 
-                return;
             }
         });
 
@@ -232,15 +233,11 @@ Predator {
             surroundingLocations.add(currentLocation);
             this.eatCarcassIfInRange(world, surroundingLocations);
         }else {
-            // TODO make this more readable
+            // TODO make this more readable //Think it's prettier now :)
             // Attack any wolf that isn't in this wolf's wolfpack and wanders nearby
-            this.attackIfInRange(world, surroundingLocations, 
-            (obj) -> {
-                    if(obj instanceof Wolf wolf && wolf.wolfPack != this.wolfPack) {
-                        return true;
-                    }
-                    return false;
-            });
+            this.attackIfInRange(world, surroundingLocations, this::isEnemyWolf);
+                        
+            }
 
             // TODO make this more readable
             // If wolf has no path, then seek nearest wolfpack member
@@ -257,7 +254,7 @@ Predator {
                 );
             }
 
-        }
+        
 
         if(this.pathFinder.hasPath()) {
             final Location nextStep = this.pathFinder.getPath().poll();

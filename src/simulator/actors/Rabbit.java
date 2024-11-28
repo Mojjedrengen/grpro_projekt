@@ -262,7 +262,7 @@ public void act(World world) {
         // Always eat food if standing on top of food.
         if(world.containsNonBlocking(currentLocation)) {
             NonBlockable nonBlockable = (NonBlockable)world.getNonBlocking(currentLocation);
-            if(nonBlockable instanceof Grass grass) {
+            if(nonBlockable instanceof Grass grass && this.getEnergy() != this.maxEnergy) { //Makes sure that rabbits dont stuff themselves if they've already eaten that day) {
                 grass.consume(world);
                 this.hasEatenToday = true;
                 this.increaseEnergy(1);
