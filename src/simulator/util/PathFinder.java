@@ -173,12 +173,12 @@ public class PathFinder {
     * @param end - The final Location the BFS ended on
     */
     private void traceRoute(HashMap<Location, Location> map, Location end) {
-        List<Location> pathBuilder = new ArrayList<>();
+        ArrayList<Location> pathBuilder = new ArrayList<>();
         pathBuilder.add(end);
 
         Location startLocation = this.currentLocation;
-        while( !map.get(pathBuilder.getLast()).equals(startLocation) )  {
-            pathBuilder.add( map.get( pathBuilder.getLast() ));
+        while( !map.get(Utilities.getLast(pathBuilder)).equals(startLocation) )  {
+            pathBuilder.add( map.get( Utilities.getLast(pathBuilder) ));
         }
 
         // Path generated is backwards, we need to reverse it
