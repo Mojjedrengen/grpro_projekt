@@ -7,25 +7,56 @@ import itumulator.world.World;
 
 import java.awt.Color;
 import java.util.Set;
+import java.util.Random;
 import java.util.function.Function;
-import java.util.function.Consumer;
 
 import simulator.util.Utilities;
 import simulator.objects.Carcass;
+import simulator.objects.holes.WolfHole;
 
-public class Wolf extends Animal implements DynamicDisplayInformationProvider, Predator {
+/** The Wolf call represents a wolf. They have 50 max energy, live until 12,
+ * eat carcasses, hunt rabbits and have 50 health points
+ *
+ * During the day wolves will look for Carcass to eat, if none is found then it
+ * will hunt down a rabbit and eat its carcass.
+ *
+ * Once a wolf has eaten, it will look for a member of its wolfpack and follow
+ * them until night. Should a wolf from another wolf pack approach the wolf,
+ * then the wolf will attack.
+ *
+ * Once night falls, the wolf will return to the wolf hole that is owned by the
+ * wolf pack.
+ *
+ * If a wolf does not have a wolfpack and can't find one, then after 2 days it
+ * will attempt to create one with a 1/10 chance of success.
+ */
+public class Wolf extends Animal implements DynamicDisplayInformationProvider,
+Predator {
 
+    // Image for adult wolf
     static final DisplayInformation adultWolf = new DisplayInformation(Color.black, "wolf");
+    // Image for baby wolf
     static final DisplayInformation babyWolf = new DisplayInformation(Color.black, "wolf-small");
 
+    // The wolfpack the wolf is currently in
     WolfPack wolfPack;
+    // Variable that tracks the amount of time a wolf has spent without being apart of a wolf pack
+    private int daysWithoutWolfPack;
 
+    /** Wolf constructor. Creates wolf with 50 energy, 12 max age, hunts rabbits and 50 health points.
+     */
     public Wolf() {
         // 50 max energy, lives until age of 12, eats rabbits, 50 health
         super(50, 12, Rabbit.class, 50);
         wolfPack = null;
+        this.daysWithoutWolfPack = 0;
     }
 
+    /**
+     * If wolf isn't in a wolfpack, then join the specified wolf pack
+     *
+     * @param wolfPack the wolf pack to join
+     */
     public void joinWolfPack(WolfPack wolfPack) {
         // Already in wolfpack
         if(this.wolfPack != null) return;
@@ -34,13 +65,27 @@ public class Wolf extends Animal implements DynamicDisplayInformationProvider, P
         wolfPack.addMember(this);
     }
 
+    /**
+     * Get the wolfpack of this wolf
+     *
+     * @return reference to wolfpack
+     */
     public WolfPack getWolfPack() {
         return this.wolfPack;
     }
 
+    /**
+     * Searches for wolfpack within a radius of three.
+     * If a wolf with a wolfpack is found witihn this radius, then this wolf joins that wolfpack
+     *
+     * If wolf hasn't found wolfpack after 2 days, then there's a 1/10 chance it will create one now
+     *
+     * @param world reference to the world
+     */
     protected void searchForWolfPack(World world) {
         Set<Location> locations = world.getSurroundingTiles(3);
-        locations.remove(world.getLocation(this));
+        final Location currentLocation = world.getLocation(this);
+        locations.remove(currentLocation);
 
         final Set<Wolf> nearbyWolves = world.getAll(Wolf.class, locations);
         for(final Wolf nearbyWolf : nearbyWolves) {
@@ -49,12 +94,30 @@ public class Wolf extends Animal implements DynamicDisplayInformationProvider, P
                 return;
             }
         }
+
+        // If wolf hasn't found WolfPack after 2 days, then try to make one with 1/10 success rate
+        if(this.wolfPack == null && this.daysWithoutWolfPack > 2 && (new Random()).nextInt(10) == 0) {
+            if(world.containsNonBlocking(currentLocation)) return;
+
+            WolfHole wolfHole = new WolfHole();
+            world.setTile(currentLocation, wolfHole);
+            this.wolfPack = new WolfPack(wolfHole);
+            this.wolfPack.addMember(this);
+        }
     }
 
+    /**
+     * Checks if wolf has wolfpack
+     *
+     * @return whether if wolf currently is a member of a wolfpack
+     */
     protected boolean hasWolfPack() {
         return this.wolfPack != null;
     }
 
+    /**
+     * Makes wolf go to its wolfpack hole if it is a member of a wolfpack
+     */
     protected void goToHole(World world) {
         if(!this.hasWolfPack() || this.isInHole()) return;
 
@@ -79,6 +142,13 @@ public class Wolf extends Animal implements DynamicDisplayInformationProvider, P
 
     }
 
+    /**
+     * Method used to attack an animal if it is within range(on a surrounding tile).
+     *
+     * @param world reference to the world
+     * @param surroundingLocations set to the surrouding tiles which are the effective range of the wolf
+     * @param attackCondition lambda function that takes an object and returns a boolean determining if the wolf should attack that animal.
+     */
     protected void attackIfInRange(World world, Set<Location> surroundingLocations, Function<Object, Boolean> attackCondition ) {
         surroundingLocations.forEach( l -> {
             final Object obj = world.getTile(l);
@@ -91,6 +161,12 @@ public class Wolf extends Animal implements DynamicDisplayInformationProvider, P
         });
     }
 
+    /**
+     * Method used to make wolf eat a carcass than is on a surrounding tile
+     *
+     * @param world reference to the world
+     * @param surroundingLocations set to the surrounding tiles
+     */
     protected void eatCarcassIfInRange(World world, Set<Location> surroundingLocations) {
         surroundingLocations.forEach( l -> {
             if(world.containsNonBlocking(l) && world.getNonBlocking(l) instanceof Carcass carcass) {
@@ -104,6 +180,11 @@ public class Wolf extends Animal implements DynamicDisplayInformationProvider, P
 
     }
 
+    /**
+     * Method to make wolf perform its day time behaviour
+     *
+     * @param world reference to the world
+     */
     protected void dayTimeBehaviour(World world) {
         if(this.isInHole()) {
             this.wolfPack.getHole().wolfExit(this, world);
@@ -184,10 +265,13 @@ public class Wolf extends Animal implements DynamicDisplayInformationProvider, P
         }else {
             this.wander(world);
         }
-
-
     }
 
+    /**
+     * Method to make wolf perform its night time behaviour
+     *
+     * @param world reference to the world
+     */
     protected void nightTimeBehaviour(World world) {
         if(!this.isInHole()) {
             if(this.hasWolfPack()) {
@@ -201,11 +285,21 @@ public class Wolf extends Animal implements DynamicDisplayInformationProvider, P
         }
     }
 
+    /**
+     * Determines if wolf is in its wolf pack wolf hole. Always returns false if wolf has no wolfpack.
+     *
+     * @return whether if wolf is currently inside hole. 
+     */
     public boolean isInHole() {
         if(this.wolfPack == null) return false;
         return this.wolfPack.assignedHole.getInhabitants().contains(this);
     }
 
+    /**
+     * Wolfs act method to make it perform its routine for a single simulation step
+     *
+     * @param world reference to the world
+     */
     @Override
     public void act(World world) {
         if(world.isDay()) {
@@ -217,15 +311,27 @@ public class Wolf extends Animal implements DynamicDisplayInformationProvider, P
         if(world.getCurrentTime() == 0) {
             this.decreaseEnergy(this.getAge() + (this.hasEatenToday ? 0 : 15), world);
             this.resetHunger();
+            if(this.wolfPack == null) this.daysWithoutWolfPack++;
         }
     }
 
+    /**
+     * Returns the DisplayInformation for the wolf. Returns image of adult wolf if the wolf is older than 3.
+     *
+     * @return wolf display information image
+     */
     @Override
     public DisplayInformation getInformation() {
         if(this.age > 3) return Wolf.adultWolf;
         return Wolf.babyWolf;
     }
 
+    /**
+     * Override of the super class killAnimal method. This kills the wolf.
+     * This method removes the wolf from its wolfpack before calling the super class killAnimal method which then kills the wolf.
+     *
+     * @param world reference to the world
+     */
     @Override
     public void killAnimal(World world) {
         if(this.wolfPack != null) this.wolfPack.removeMember(this);
@@ -233,6 +339,13 @@ public class Wolf extends Animal implements DynamicDisplayInformationProvider, P
     }
 
 
+    /**
+     * Predator interface attack implementation.
+     * Given an animal, the wolf will perform 30 points of damage to it.
+     *
+     * @param prey the animal the wolf attacks
+     * @param world reference to the world
+     */
     @Override
     public void attack(Animal prey, World world) {
         prey.takeDamage(30, world);
