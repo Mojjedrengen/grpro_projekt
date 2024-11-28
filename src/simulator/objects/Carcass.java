@@ -1,24 +1,41 @@
 package simulator.objects;
+
+import itumulator.world.World;
 import itumulator.executable.DisplayInformation;
 import itumulator.executable.DynamicDisplayInformationProvider;
 import java.awt.*;
+
 
 /**
  * Represents a carcass left behind when an animal dies.
  */
 public class Carcass extends NonBlockable implements DynamicDisplayInformationProvider{
-    private final String image;
 
-    public Carcass(String imagePath) {
-        this.image = imagePath;
+    // A predator can call the consume method on a Carcass multiple times.
+    private int meatLeft;
+    private final DisplayInformation carcassImage;
+
+    public Carcass(final DisplayInformation carcassImage) {
+        if(carcassImage == bigCarcass) meatLeft = 4;
+        else meatLeft = 2;
+
+        this.carcassImage = carcassImage;
     }
     
-    static final DisplayInformation smallCarcass = new DisplayInformation(Color.yellow, "carcass-small");
-    static final DisplayInformation bigCarcass = new DisplayInformation(Color.green, "carcass");
+    public static final DisplayInformation smallCarcass = new DisplayInformation(Color.yellow, "carcass-small");
+    public static final DisplayInformation bigCarcass = new DisplayInformation(Color.green, "carcass");
 
 
     public DisplayInformation getInformation() {
-        if ("carcass-small".equals(image)) {return Carcass.smallCarcass;}
-        return Carcass.bigCarcass;
+        return this.carcassImage;
+    }
+
+    public void consume(World world) {
+        this.meatLeft--;
+        if(meatLeft <= 0) world.remove(this);
+    }
+
+    public int getMeatLeft() {
+        return this.meatLeft;
     }
 }

@@ -18,11 +18,12 @@ import simulator.util.PathFinder;
 public abstract class Animal implements Actor {
 
     private int energy;
-    final int maxEnergy;
+    public final int maxEnergy;
     protected int health;
+    public final int maxHealth;
 
     protected int age;
-    final int maxAge;
+    public final int maxAge;
 
     protected boolean hasEatenToday;
 
@@ -38,12 +39,14 @@ public abstract class Animal implements Actor {
      */
     public Animal(int startEnergy, int maxAge, Class<?> foodType, int initialHealth) {
         this.energy = startEnergy;
-        this.health = initialHealth;
         this.maxEnergy = startEnergy;
-        this.age = 0;
-        this.hasEatenToday = false;
         this.maxAge = maxAge;
         this.foodType = foodType;
+        this.health = initialHealth;
+        this.maxHealth = initialHealth;
+
+        this.age = 0;
+        this.hasEatenToday = false;
 
         this.pathFinder = new PathFinder(null);
     }
@@ -103,9 +106,9 @@ public abstract class Animal implements Actor {
             
             Carcass carcass;
             if(this instanceof Rabbit) { //Changes carcass display img depending on rabbit or other
-                carcass = new Carcass("carcass-small");
+                carcass = new Carcass(Carcass.bigCarcass);
             } else {
-                carcass = new Carcass("carcass");
+                carcass = new Carcass(Carcass.smallCarcass);
             }
             replaceWithCarcass(carcass, world);
         }
