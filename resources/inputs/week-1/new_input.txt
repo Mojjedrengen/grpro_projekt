@@ -3,4 +3,5 @@ bear 1
 grass 10-15
 rabbit 5-7
 wolf 2-4
+berry 7-12
 bear 1
