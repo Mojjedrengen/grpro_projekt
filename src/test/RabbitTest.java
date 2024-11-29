@@ -4,6 +4,7 @@ import itumulator.world.Location;
 import itumulator.world.World;
 import simulator.actors.Rabbit;
 import simulator.objects.holes.RabbitHole;
+import simulator.objects.holes.RabbitHoleNetwork;
 import simulator.objects.plants.Grass;
 import simulator.util.PathFinder;
 
@@ -101,7 +102,7 @@ public class RabbitTest {
         Location startingLocation = new Location(0,0);
         Location rabbitHoleLocation = new Location(1,2);
 
-        r.setAssignedNetwork(rh);
+
         this.w.setNight();
 
         this.w.setTile(startingLocation, r);
@@ -113,7 +114,7 @@ public class RabbitTest {
         r.act(this.w);
         r.act(this.w);
 
-        assertTrue(rh.getNetwork().getInhabitants().contains(r));
+        assertTrue(RabbitHoleNetwork.getInstance().getInhabitants().contains(r));
 
     }
 
@@ -151,16 +152,15 @@ public class RabbitTest {
 
         Location location = new Location(0,0);
 
-        r1.setAssignedNetwork(rh);
-        r2.setAssignedNetwork(rh);
+
 
         this.w.setTile(location, rh);
 
         this.w.add(r1);
         this.w.add(r2);
 
-        rh.getNetwork().animalEnters(r1);
-        rh.getNetwork().animalEnters(r2);
+        RabbitHoleNetwork.getInstance().animalEnters(r1);
+        RabbitHoleNetwork.getInstance().animalEnters(r2);
 
         for(int i = 0; i < 100; i++) {
             r1.reproduce(w);

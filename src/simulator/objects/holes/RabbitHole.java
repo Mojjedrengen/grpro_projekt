@@ -15,12 +15,9 @@ public class RabbitHole extends Hole{
     public RabbitHole() {
         super();
         this.inhabitants = null;
-        this.network = new RabbitHoleNetwork(this);
-    }
-    public RabbitHole(RabbitHoleNetwork network) {
-        super();
-        this.inhabitants = null;
-        this.network = network;
+        this.network = RabbitHoleNetwork.getInstance();
+        this.network.addHole(this);
+        System.out.println(this + " is part of " + this.network);
     }
 
     public void enterRabbit(Animal rabbit, World world) {
@@ -48,8 +45,6 @@ public class RabbitHole extends Hole{
             world.setTile(tiles.iterator().next(), rabbit);
         }
     }
-
-    public RabbitHoleNetwork getNetwork() {return network;}
 
     public boolean predatorNearby(@NotNull World world){
         Set<Location> neighbors = world.getSurroundingTiles(this.getLocation(world), 3);

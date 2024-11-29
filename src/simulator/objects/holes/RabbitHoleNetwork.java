@@ -2,6 +2,7 @@ package simulator.objects.holes;
 
 import itumulator.world.Location;
 import itumulator.world.World;
+import org.jetbrains.annotations.NotNull;
 import simulator.actors.Animal;
 import simulator.actors.Rabbit;
 
@@ -14,16 +15,25 @@ public class RabbitHoleNetwork {
     private Set<RabbitHole> entrances;
     private Set<Animal> inhabitants;
 
-    public RabbitHoleNetwork(){
+    private static RabbitHoleNetwork instance;
+
+    private RabbitHoleNetwork(){
         this.entrances = new HashSet<>();
         this.inhabitants = new HashSet<>();
     }
-    public RabbitHoleNetwork(RabbitHole initialHole) {
-        this();
-        this.entrances.add(initialHole);
+
+    public static synchronized RabbitHoleNetwork getInstance(){
+        if(instance == null){
+            instance = new RabbitHoleNetwork();
+        }
+        return instance;
     }
 
-    public void createHole(World world, Location location) {
+    public void addHole(RabbitHole hole) {
+        this.entrances.add(hole);
+    }
+
+    public void createHole(@NotNull World world, Location location) {
         if (world.containsNonBlocking(location)) return;
         RabbitHole hole = new RabbitHole();
         this.entrances.add(hole);
@@ -73,7 +83,7 @@ public class RabbitHoleNetwork {
         Set<Animal> offSprings = new HashSet<>();
         for (int i = 0; i < this.inhabitants.size(); i++){
             if (this.inhabitants.size() > 1 && rand.nextInt(20) == 4 && offSprings.size() < this.inhabitants.size()/2) {
-                Animal offspring = new Rabbit(this);
+                Animal offspring = new Rabbit();
                 offSprings.add(offspring);
             }
         }
