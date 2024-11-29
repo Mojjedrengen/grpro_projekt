@@ -7,8 +7,8 @@ import itumulator.world.World;
 import java.awt.Color;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.function.Function;
 import simulator.objects.plants.Bush;
+import simulator.objects.plants.Plant;
 
 public class Bear extends Animal implements DynamicDisplayInformationProvider, Predator {
 
@@ -22,59 +22,88 @@ public class Bear extends Animal implements DynamicDisplayInformationProvider, P
         this.territory = new HashSet<>();
     }
 
-    private void establishTerritory(World world) { //Establishes a territory if no territory exists
+    private void establishTerritory(World world) {
         Location currentLocation = world.getLocation(this);
         if (territory.isEmpty()) {
             this.territory = world.getSurroundingTiles(currentLocation, 3);
         }
     }
 
-    private boolean isInTerritory(Location location) { //Returns if location is in territory
+    private boolean isInTerritory(Location location) {
         return territory.contains(location);
     }
 
-    private void attackIfInRange(World world, Set<Location> surroundingLocations, Function<Object, Boolean> attackCondition) { //Attacks animals in range
+    private boolean huntImmediate(World world, Set<Location> surroundingLocations) {
+        if (this.hasEatenToday) return false; // Only hunt if the bear hasn’t eaten
+
         for (Location location : surroundingLocations) {
             Object obj = world.getTile(location);
-            if (attackCondition.apply(obj) && obj instanceof Animal animal) {
-                this.attack(animal, world);
-                break;
+            if (obj instanceof Rabbit || obj instanceof Wolf) {
+                System.out.println("Bear attacked prey at " + location);
+                this.attack((Animal) obj, world);
+                return true; // Prey was attacked
             }
         }
+        return false; // No prey found in adjacent tiles
     }
 
-    private void hunt(World world, Set<Location> surroundingLocations) { //Calls attackIfInRange
-        this.attackIfInRange(world, surroundingLocations, obj -> obj instanceof Rabbit || obj instanceof Wolf);
+    private boolean eatCarcass(World world, Set<Location> surroundingLocations) {
+        if (this.hasEatenToday) return false; // Only eat if the bear hasn’t eaten
+
+        for (Location location : surroundingLocations) {
+            if (world.containsNonBlocking(location) &&
+                world.getNonBlocking(location) instanceof simulator.objects.Carcass carcass) {
+                carcass.consume(world); // Consume the carcass
+                System.out.println("Bear ate a carcass!");
+                this.ate();
+                this.increaseEnergy(30); // Bears get more energy from carcasses
+                return true; // Exit as a carcass was eaten
+            }
+        }
+        return false; // No carcass was found
     }
 
-    private void eatBerries(World world, Set<Location> surroundingLocations) { //Eats berries if theyre in surroundinglocation set aka territory
+    private boolean eatBerries(World world, Set<Location> surroundingLocations) {
+        if (this.hasEatenToday) return false; // Only eat if the bear hasn’t eaten
+
         for (Location location : surroundingLocations) {
             if (world.containsNonBlocking(location) &&
                 world.getNonBlocking(location) instanceof Bush bush &&
-                bush.getCurrentStage() == Bush.Stage.RIPE && this.getEnergy() != this.maxEnergy) {
+                bush.getCurrentStage() == Plant.Stage.RIPE) {
                 bush.consume(world);
+                System.out.println("Bear ate berries!");
                 this.ate();
                 this.increaseEnergy(20);
-                return;
+                return true;
             }
         }
+        return false; // No berries were eaten
     }
 
-    private void daytimeBehavior(World world) { //Daytime behavior
+    private void daytimeBehavior(World world) {
         this.establishTerritory(world);
 
         Location currentLocation = world.getLocation(this);
         Set<Location> surroundingLocations = world.getSurroundingTiles(currentLocation);
 
-        this.eatBerries(world, surroundingLocations);
-
-        if (this.getEnergy() < this.maxEnergy) {
-            this.hunt(world, surroundingLocations);
+        // Prioritize eating or attacking immediate prey
+        if (this.eatCarcass(world, surroundingLocations)) {
+            return; // Exit if a carcass was eaten
         }
 
-        if (!this.pathFinder.hasPath() || !this.isInTerritory(this.pathFinder.getFinalLocationInPath())) {
-            this.pathFinder.setLocation(currentLocation); //TODO Idk if this is correct or not, i just looked at the methods for pathfinder and hoped for the best, might need a redo
+        if (this.eatBerries(world, surroundingLocations)) {
+            return; // Exit if berries were eaten
+        }
 
+        if (this.huntImmediate(world, surroundingLocations)) {
+            return; // Exit if prey was attacked
+        }
+
+        // If no food was consumed or hunted, pathfind to food
+        if (!this.pathFinder.hasPath()) {
+            this.pathFinder.setLocation(currentLocation);
+
+            // Attempt to find food
             boolean pathFound = this.pathFinder.findPathToNearest(Bush.class, world);
             if (!pathFound) {
                 pathFound = this.pathFinder.findPathToNearestBlocking(Rabbit.class, world);
@@ -82,18 +111,20 @@ public class Bear extends Animal implements DynamicDisplayInformationProvider, P
                     this.pathFinder.findPathToNearestBlocking(Wolf.class, world);
                 }
             }
-
-            if (!pathFound) {
-                this.wander(world);
-            }
         }
 
+        // Follow the path if one exists
         if (this.pathFinder.hasPath()) {
             Location nextStep = this.pathFinder.getPath().poll();
             if (world.isTileEmpty(nextStep)) {
                 world.move(this, nextStep);
+            } else {
+                // Clear the path and wander if blocked
+                this.pathFinder.clearPath();
+                this.wander(world);
             }
         } else {
+            // Wander if no path exists
             this.wander(world);
         }
     }
@@ -142,6 +173,6 @@ public class Bear extends Animal implements DynamicDisplayInformationProvider, P
 
     @Override
     public void attack(Animal prey, World world) {
-        prey.takeDamage(40, world); //Bear does big 40
+        prey.takeDamage(40, world); // Bear does big 40
     }
 }
