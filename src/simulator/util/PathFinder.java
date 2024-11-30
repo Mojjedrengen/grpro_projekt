@@ -238,8 +238,7 @@ public class PathFinder {
      * @return whether if the location given is the final location
      */
     public boolean isFinalLocationInPath(Location location) {
-        if( this.path.getLast().equals(location) ) return true;
-        return false;
+        return this.path.getLast().equals(location);
     }
 
     /**
