@@ -3,6 +3,7 @@ package test;
 import org.junit.jupiter.api.Test;
 import simulator.actors.Animal;
 import simulator.actors.Rabbit;
+import simulator.actors.Wolf;
 import simulator.objects.NonBlockable;
 import simulator.objects.holes.RabbitHole;
 import simulator.objects.plants.Grass;
@@ -261,6 +262,59 @@ class WorldLoaderTest {
                 fail("Incorrect NonBlockable dynamic type, expected RabbitHole");
             }
         }
+    }
+
+    @Test
+    public void t2_1ab() {
+        try{
+            this.wl = new WorldLoader("resources/inputs/week-2/t2-1ab.txt", 200, 200);
+        }catch(Exception e) {
+            fail("Input file t2-1ab.txt not found");
+        }
+
+        List<NonBlockable> nonBlockables = wl.getNonBlockables();
+        List<Animal> animals = wl.getAnimals();
+
+        assertTrue(wl.getWorldSize() == 5);
+        assertTrue(nonBlockables.size() == 0);
+        assertTrue(animals.size() == 1);
+
+        for(Animal animal : wl.getAnimals()) {
+            if(!(animal instanceof Wolf)) {
+                fail("Incorrect Animal dynamic type, expected Wolf");
+            }
+        }
+
+    }
+
+    @Test
+    public void t2_1c() {
+        try{
+            this.wl = new WorldLoader("resources/inputs/week-2/t2-1c.txt", 200, 200);
+        }catch(Exception e) {
+            fail("Input file t2-1c.txt not found");
+        }
+
+        List<NonBlockable> nonBlockables = wl.getNonBlockables();
+        List<Animal> animals = wl.getAnimals();
+
+        assertTrue(wl.getWorldSize() == 10);
+        assertTrue(nonBlockables.size() >= 2 && nonBlockables.size() <= 7);
+        assertTrue(animals.size() == 3);
+
+        final int expectedWolfCount = 1;
+        final int expectedRabbitCount = 2;
+
+        int wolves = 0;
+        int rabbits = 0;
+        for(Animal animal : animals) {
+            if(animal instanceof Wolf) wolves++;
+            else if(animal instanceof Rabbit) rabbits++;
+        }
+
+        assertTrue(wolves == expectedWolfCount);
+        assertTrue(rabbits == expectedRabbitCount);
+
     }
 
 }

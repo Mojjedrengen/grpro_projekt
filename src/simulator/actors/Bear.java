@@ -29,7 +29,7 @@ public class Bear extends Animal implements DynamicDisplayInformationProvider, P
     }
 
     @Override
-    public void attack(Object prey, World world) {
+    public void attack(Animal prey, World world) {
         //if in surrounding tiles??
         //target.takeDamage(x, world))
     }

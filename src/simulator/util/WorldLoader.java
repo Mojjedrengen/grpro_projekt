@@ -164,6 +164,8 @@ public class WorldLoader {
             return () -> { return new Grass(); };
             case "bush":
             return () -> { return new Bush(); };
+            case "berry":
+            return () -> { return new Bush(); };
             case "burrow":
             return () -> { return new RabbitHole(); };
             default:

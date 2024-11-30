@@ -4,6 +4,7 @@ import itumulator.world.Location;
 import itumulator.world.World;
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.ArrayList;
 import java.util.Queue;
 import java.util.function.*;
@@ -46,7 +47,7 @@ public class PathFinder {
 
 
     /** 
-     * Wrapper around findPath() method. Used to find path to specific instance of something
+     * Wrapper around findPath() method. Used to find path to specific instance of nonblocking
      *
      * @param type - The type of object you're looking to find the closest route to
      * @param world - Reference to the world
@@ -55,8 +56,24 @@ public class PathFinder {
     public <T> boolean findPathToNearest(Class<T> type, World world) {
         return this.findPath
         ( (location) -> { 
-            Object obj = world.getTile(location);
-            if(obj != null && type.isInstance(obj)) return true;
+            // isInstance is null-safe, it returns false if argument is null, which is exactly what we want
+            return type.isInstance(world.getTile(location));
+        }, world);
+    }
+
+    /**
+     * Wrapper around findPath() method. Used to find path to tile *surrounding* the blocking tile
+     *
+     * @param type - The type of object you're looking to find the closest route to
+     * @param world - Reference to the world
+     * @return whether if a path was found or not
+     */
+    public <T> boolean findPathToNearestBlocking(Class<T> type, World world) {
+        return this.findPath
+        ( (location) -> { 
+            for(Location t : world.getSurroundingTiles(location)) {
+                if(type.isInstance(world.getTile(t))) return true;
+            }
             return false;
         }, world);
     }
@@ -152,7 +169,7 @@ public class PathFinder {
     * This simply hops through the hashmap constructed by the BFS algorithm
     * to re-create the shortest path
     *
-    * @param map - The hashmap constructed by BFS(findPathToLocation)
+    * @param map - The hashmap constructed by BFS(findPath method)
     * @param end - The final Location the BFS ended on
     */
     private void traceRoute(HashMap<Location, Location> map, Location end) {
@@ -160,12 +177,12 @@ public class PathFinder {
         pathBuilder.add(end);
 
         Location startLocation = this.currentLocation;
-        while( !map.get(Utilities.getLast(pathBuilder) ).equals(startLocation) )  {
+        while( !map.get(Utilities.getLast(pathBuilder)).equals(startLocation) )  {
             pathBuilder.add( map.get( Utilities.getLast(pathBuilder) ));
         }
 
+        // Path generated is backwards, we need to reverse it
         for(int i = pathBuilder.size() - 1; i >= 0; i--) {
-            //            System.out.println(pathBuilder.get(i));
             this.path.add(pathBuilder.get(i));
         }
 
@@ -179,7 +196,7 @@ public class PathFinder {
      * @param world - Reference to the world
      * @return whether if a path was found or not
      */
-    private boolean findPath(Function<Location, Boolean> condition, World world) {
+    public boolean findPath(Function<Location, Boolean> condition, World world) {
         this.path.clear();
         // No starting point is set
         if(this.currentLocation == null) return false;
@@ -190,6 +207,7 @@ public class PathFinder {
         // 1. to keep track of how the BFS algorithm reached each location, which can then be used to re-construct the path
         // 2. it is used as a visited set to prevent cycles
         HashMap<Location, Location> pathTracer = new HashMap<>();
+        pathTracer.put(this.currentLocation, this.currentLocation); // Mark start location as visisted
 
         queue.add(this.currentLocation);
         while(!queue.isEmpty()) {
@@ -204,8 +222,8 @@ public class PathFinder {
             for(Location neighbour : world.getEmptySurroundingTiles(focusedLocation) ) {
                 // pathTracer is both used to trace out the paths taken AND it doubles as a visited set
                 if(!pathTracer.containsKey(neighbour)) {
-                    queue.add(neighbour);
                     pathTracer.put(neighbour, focusedLocation);
+                    queue.add(neighbour);
                 }
             }
         }
