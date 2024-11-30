@@ -25,6 +25,36 @@ class GrassTest {
 
     @Test
     void spreadChanceTest() {
+
+        Grass grass = new Grass();
+        this.w.step();
+
+        int expectedGrass = grass.getSpreadChance();
+
+        Location grassLocation = new Location(0,0);
+        this.w.setTile(grassLocation, grass);
+        this.w.setCurrentLocation(grassLocation);
+
+        final int iterations = 100_000;
+        int actualGrass = 0;
+        for(int i = 0; i < iterations; i++) {
+            grass.act(this.w);
+            for(Location l : this.w.getSurroundingTiles(grassLocation)) {
+                if(this.w.containsNonBlocking(l) && this.w.getNonBlocking(l) instanceof Grass g) {
+                    actualGrass += 1;
+                    this.w.delete(g);
+                }
+            }
+        }
+
+
+        double expectedChance = ((double)expectedGrass) / 100.0;
+        double actualChance = ((double)actualGrass) / ((double)iterations);
+
+        // allow 5% margin of error
+        assertTrue( expectedChance - 0.05 <= actualChance && actualChance <= expectedChance + 0.05 );
+
+        /* Spreading works a bit differently now that we have the Plant abstract class
         List<Integer> timeToSpread = new ArrayList<>();
         for (int i = 0; i < 1_000; i++) {
            Grass g = new Grass();
@@ -56,6 +86,7 @@ class GrassTest {
         }
         double chance = sum / (double)timeToSpread.size();
         assertEquals(new Grass().getSpreadChance(), chance);
+        */
     }
 
     @Test
