@@ -2,14 +2,11 @@ package test;
 
 import itumulator.world.Location;
 import itumulator.world.World;
-import simulator.actors.Animal;
 import simulator.actors.Rabbit;
 import simulator.objects.holes.RabbitHole;
+import simulator.objects.holes.RabbitHoleNetwork;
 import simulator.objects.plants.Grass;
 import simulator.util.PathFinder;
-
-import java.util.HashSet;
-import java.util.Set;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -105,7 +102,7 @@ public class RabbitTest {
         Location startingLocation = new Location(0,0);
         Location rabbitHoleLocation = new Location(1,2);
 
-        r.assignHole(rh);
+
         this.w.setNight();
 
         this.w.setTile(startingLocation, r);
@@ -117,7 +114,7 @@ public class RabbitTest {
         r.act(this.w);
         r.act(this.w);
 
-        assertTrue(rh.getInhabitants().contains(r));
+        assertTrue(RabbitHoleNetwork.getInstance().getInhabitants().contains(r));
 
     }
 
@@ -155,16 +152,15 @@ public class RabbitTest {
 
         Location location = new Location(0,0);
 
-        r1.assignHole(rh);
-        r2.assignHole(rh);
+
 
         this.w.setTile(location, rh);
 
         this.w.add(r1);
         this.w.add(r2);
 
-        rh.rabbitEntersNetwork(r1);
-        rh.rabbitEntersNetwork(r2);
+        RabbitHoleNetwork.getInstance().animalEnters(r1);
+        RabbitHoleNetwork.getInstance().animalEnters(r2);
 
         for(int i = 0; i < 100; i++) {
             r1.reproduce(w);

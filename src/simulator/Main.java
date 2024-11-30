@@ -2,13 +2,10 @@ package simulator;
 
 import java.awt.Color;
 import java.util.List;
-import java.util.Random;
 import java.io.*;
 
 import itumulator.executable.DisplayInformation;
 import itumulator.executable.Program;
-import itumulator.world.Location;
-import itumulator.world.World;
 
 import simulator.util.WorldLoader;
 import simulator.util.exceptions.InvalidWorldInputFileException;

@@ -1,8 +1,5 @@
 package test;
 
-import itumulator.world.Location;
-import itumulator.world.World;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import simulator.actors.Animal;
 import simulator.actors.Rabbit;
