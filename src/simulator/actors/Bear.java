@@ -29,7 +29,7 @@ public class Bear extends Animal implements DynamicDisplayInformationProvider, P
         }
     }
 
-    private boolean isInTerritory(Location location) {
+    public boolean isInTerritory(Location location) {
         return territory.contains(location);
     }
 
@@ -83,16 +83,22 @@ public class Bear extends Animal implements DynamicDisplayInformationProvider, P
     private void daytimeBehavior(World world) {
         this.establishTerritory(world);
 
+        if (this.hasEatenToday) {
+            this.nighttimeBehavior(world);
+            return;
+        }
+
         Location currentLocation = world.getLocation(this);
         Set<Location> surroundingLocations = world.getSurroundingTiles(currentLocation);
 
-        // Prioritize eating or attacking immediate prey
-        if (this.eatCarcass(world, surroundingLocations)) {
-            return; // Exit if a carcass was eaten
-        }
-
+        // Prioritize eating immediate berries
         if (this.eatBerries(world, surroundingLocations)) {
             return; // Exit if berries were eaten
+        }
+
+        // Eat surrounding carcass
+        if (this.eatCarcass(world, surroundingLocations)) {
+            return; // Exit if a carcass was eaten
         }
 
         if (this.huntImmediate(world, surroundingLocations)) {
@@ -131,6 +137,11 @@ public class Bear extends Animal implements DynamicDisplayInformationProvider, P
 
     private void nighttimeBehavior(World world) {
         Location currentLocation = world.getLocation(this);
+
+        if (territory.isEmpty()) {
+            // Reestablish territory if empty
+            this.establishTerritory(world);
+        }
 
         if (!isInTerritory(currentLocation)) {
             Location territoryCenter = this.territory.iterator().next();

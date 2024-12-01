@@ -189,7 +189,7 @@ public class WolfTest {
         Wolf w1 = new Wolf();
         Location wLocation = new Location(0,0);
 
-        Carcass c = new Carcass(Carcass.bigCarcass);
+        Carcass c = new Carcass(Carcass.bigCarcass, false);
         Location cLocation = new Location(0,0);
 
         this.w.setTile(wLocation, w1);
