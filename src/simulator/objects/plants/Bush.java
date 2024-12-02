@@ -13,15 +13,15 @@ import java.util.Random;
  * the fruits/berries on the bush but not the bush itself.
  *
  * Bushes can in fact spread. But due to the fact that there's no natural way
- * of them to be removed, the spread chance is very low(5%).
+ * of them to be removed, the spread chance is very low(3%).
  *
  */
 public class Bush extends Plant implements DynamicDisplayInformationProvider {
 
-    static final DisplayInformation regularBush = new DisplayInformation(Color.red, "bush");
-    static final DisplayInformation ripeBush = new DisplayInformation(Color.red, "bush-berries");
+    public static final DisplayInformation regularBush = new DisplayInformation(Color.red, "bush");
+    public static final DisplayInformation ripeBush = new DisplayInformation(Color.red, "bush-berries");
 
-    static final int bushMaxAge = 6;
+    public static final int bushMaxAge = 6;
     protected int bushAge;
 
     public Bush() {

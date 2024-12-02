@@ -2,6 +2,10 @@ package simulator.util;
 
 import itumulator.world.Location;
 import itumulator.world.World;
+
+import org.jetbrains.annotations.NotNull;
+import simulator.objects.NonBlockable;
+
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Random;
@@ -105,4 +109,21 @@ public class Utilities {
         return getRandomEmptyNonBlockingLocation(new Random(), world, worldSize);
     }
 
+
+    public static Location getClosestLocationFromSet(@NotNull Set<Location> set, @NotNull Location startLocation) {
+        Location closest = null;
+        int closestDistance = Integer.MAX_VALUE;
+        int x1 = startLocation.getX();
+        int y1 = startLocation.getY();
+        for (Location location : set) {
+            int x2 = location.getX();
+            int y2 = location.getY();
+            int distanceSquard = (int) (Math.pow(x2-x1, 2) + Math.pow(y2-y1, 2));
+            if (distanceSquard < closestDistance) {
+                closest = location;
+                closestDistance = distanceSquard;
+            }
+        }
+        return closest;
+    }
 }

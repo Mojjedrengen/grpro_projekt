@@ -12,7 +12,7 @@ import simulator.objects.Carcass;
 import simulator.objects.holes.WolfHole;
 import simulator.util.Utilities;
 
-/** The Wolf call represents a wolf. They have 50 max energy, live until 12,
+/** The Wolf class represents a wolf. They have 50 max energy, live until 12,
  * eat carcasses, hunt rabbits and have 50 health points
  *
  * During the day wolves will look for Carcass to eat, if none is found then it
@@ -65,6 +65,10 @@ Predator {
 
     protected boolean isEnemyWolf(Object obj) { //To simplify other code
         return obj instanceof Wolf wolf && wolf.wolfPack != this.wolfPack;
+    }
+
+    protected boolean isFriendlyWolf(Object obj) { //To simplify other code
+        return obj instanceof Wolf wolf && wolf.wolfPack == this.wolfPack;
     }
 
     /**
@@ -171,11 +175,16 @@ Predator {
      */
     protected void eatCarcassIfInRange(World world, Set<Location> surroundingLocations) {
         surroundingLocations.forEach( l -> {
-            if(world.containsNonBlocking(l) && world.getNonBlocking(l) instanceof Carcass carcass && this.getEnergy() != this.maxEnergy) {
+            if(world.containsNonBlocking(l) && world.getNonBlocking(l) instanceof Carcass carcass 
+            // This logic introduces a bug which prevents the wolf from eating on its very first day
+            // it starts off with max energy, but since hasEatenToday starts as false, it will starve itself.
+            // On a side note: Remember to run unit tests after introducing logic changes! wolfEatsCarcassTest() fails after adding this
+            /* BUG: && this.getEnergy() != this.maxEnergy */) {
                 carcass.consume(world);
                 this.ate();
                 this.increaseEnergy(30);
                 // Only eat once per time step 
+                return;
             }
         });
 
@@ -225,34 +234,31 @@ Predator {
         if(this.getEnergy() != this.maxEnergy || !this.hasEatenToday){
             // If Rabbit in attack range, then attack it
             this.attackIfInRange(world, surroundingLocations, 
-            (obj) -> {
-                return obj instanceof Rabbit;
+                (obj) -> {
+                    return /* Attack if */ obj instanceof Rabbit;
             });
 
             // Carcass is NonBlockable, so Wolf should also be allowed to stand on top
             surroundingLocations.add(currentLocation);
             this.eatCarcassIfInRange(world, surroundingLocations);
         }else {
-            // TODO make this more readable //Think it's prettier now :)
             // Attack any wolf that isn't in this wolf's wolfpack and wanders nearby
             this.attackIfInRange(world, surroundingLocations, this::isEnemyWolf);
                         
-            }
+        }
 
-            // TODO make this more readable
             // If wolf has no path, then seek nearest wolfpack member
-            if(!this.pathFinder.hasPath() && this.hasWolfPack() )  {
-                boolean res = this.pathFinder.findPath(
-                (location) -> {
-                        for(Location t : world.getSurroundingTiles(location)) {
-                            if(world.getTile(t) instanceof Wolf wolf && wolf != this && wolf.wolfPack == this.wolfPack) return true;
-                        }
-                        return false;
+        if(!this.pathFinder.hasPath() && this.hasWolfPack() )  {
+            this.pathFinder.findPath(
+            (location) -> {
+                    for(Location t : world.getSurroundingTiles(location)) {
+                        if(this.isFriendlyWolf(world.getTile(t)) && !t.equals(currentLocation) ) return true;
+                    }
+                    return false;
 
-                    }, 
-                    world 
-                );
-            }
+                }, world
+            );
+        }
 
         
 

@@ -1,10 +1,12 @@
 package simulator;
 
+import java.awt.Color;
+import java.util.List;
+import java.io.*;
+
 import itumulator.executable.DisplayInformation;
 import itumulator.executable.Program;
-import java.awt.Color;
-import java.io.*;
-import java.util.List;
+
 import simulator.actors.*;
 import simulator.objects.*;
 import simulator.objects.holes.*;
