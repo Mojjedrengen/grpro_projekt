@@ -90,6 +90,7 @@ public class RabbitHoleNetwork {
         if (!offSprings.isEmpty()) {
             for (Animal offspring : offSprings) {
                 this.animalEnters(offspring);
+                ((Rabbit)offspring).assignNetwork(this);
                 world.add(offspring);
             }
         }

@@ -58,7 +58,7 @@ public class WorldLoader {
         this.delay = delay;
 
         File inputFile = new File(filePath);
-        if(!inputFile.isFile()) throw new IllegalArgumentException("Not a file");
+        if(!inputFile.isFile()) throw new IllegalArgumentException("Not a file or file not found");
 
         this.animals = new LinkedList<>();
         this.nonblockables = new LinkedList<>();
@@ -144,11 +144,11 @@ public class WorldLoader {
     private Supplier<? extends Animal> parseAnimal(final String unknownObjectString) {
         switch(unknownObjectString) {
             case "rabbit":
-            return () -> { return new Rabbit(); };
+                return () -> { return new Rabbit(); };
             case "wolf":
-            return () -> { return new Wolf(); };
+                return () -> { return new Wolf(); };
             case "bear":
-            return () -> { return new Bear(); };
+                return () -> { return new Bear(); };
             case "cordyceps rabbit":
             return () -> { return new InfectedAnimal<Rabbit>(Rabbit.class, this.world); };
             case "cordyceps wolf":
@@ -170,14 +170,14 @@ public class WorldLoader {
     private Supplier<? extends NonBlockable> parseNonBlockable(final String unknownObjectString) {
         switch(unknownObjectString) {
             case "grass":
-            return () -> { return new Grass(); };
+                return () -> { return new Grass(); };
             case "bush":
-            return () -> { return new Bush(); };
+                return () -> { return new Bush(); };
             case "berry":
-            return () -> { return new Bush(); };
+                return () -> { return new Bush(); };
             case "burrow":
-            return () -> { return new RabbitHole(); };
-            case "carcass":
+                return () -> { return new RabbitHole(); };
+            case "carcass": //TODO make random between choosing small and big carcass
                 return () -> { return new Carcass(Carcass.smallCarcass, false); };
             case "carcass fungi":
                 return () -> { return new Carcass(Carcass.smallCarcass, true); };
@@ -248,9 +248,22 @@ public class WorldLoader {
         // Input has been checked, we can now return the coordinate as a location
         return new Location(Integer.parseInt(tokens[0]), Integer.parseInt(tokens[1]));
     }
+  
+    /**
+     * If Carcass has fungi, then it is always the second token that specifies that  
+     * Example:
+     * Carcass fungi 1 (2,3)
+     *
+     * @param tokens the input tokens split by white space
+     * @return whether if input line specifies fungi
+     */
+    private boolean hasFungi(final String[] tokens) {
+        if(tokens.length < 2) return false;
+        return tokens[1].trim().equals("fungi");
 
     private boolean isCordyceps(final String[] tokens) {
         return tokens[0].trim().equals("cordyceps");
+
     }
 
     /** 
@@ -288,7 +301,10 @@ public class WorldLoader {
             if(this.isCordyceps(tokens)) {
                 tokens[0] = "cordyceps " + tokens[1].trim();
                 tokens = mergeTokens.apply(tokens);
-            } // add else if fungi here when merging with fungi branch
+            } else if( this.hasFungi(tokens) ) {
+                tokens[0] = "carcass fungi";
+                tokens = mergeTokens.apply(tokens);
+            }
         }
 
         // Parses the number or range that comes after object name, e.g. "Rabbit 2" or "Rabbit 5-10"
@@ -298,6 +314,8 @@ public class WorldLoader {
         throw new InvalidWorldInputFileException("Invalid number or range of objects", line, lineNumber);
 
         final Location objectLocation;
+        // Check if line is long enough to contain a specific coordinate.
+        // If so, make sure that the length of the line isn't simply due to line containing fungi token
         if(tokens.length == 3) {
             if(numberOfObjects != 1)
             throw new InvalidWorldInputFileException("Cannot place multiple objects of the same type on the same tile", line, lineNumber);

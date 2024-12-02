@@ -11,7 +11,7 @@ import java.util.Set;
 
 import java.awt.Color;
 
-import org.jetbrains.annotations.NotNull;
+//import org.jetbrains.annotations.NotNull;
 import simulator.objects.holes.RabbitHoleNetwork;
 import simulator.objects.plants.Grass;
 import simulator.objects.NonBlockable;
@@ -44,19 +44,19 @@ public class Rabbit extends Animal implements DynamicDisplayInformationProvider 
     static DisplayInformation smallRabbit = new DisplayInformation(Color.red, "rabbit-small");
 
     // Rabbit only attempts to reproduce once per night, this keeps track of whether it has or hasn't
-    private boolean hasAttemptetToReproduce;
+    private boolean hasAttemptedToReproduce;
     private RabbitHoleNetwork assignedNetwork; // The singleton of the network
     private boolean hasCreatedHole;
-    private boolean hasAttemptetToCrateHole; //boolean to make sure the rabbit don't spend all night trying to make a hole
+    private boolean hasAttemptedToCreateHole; //boolean to make sure the rabbit don't spend all night trying to make a hole
 
 
     public Rabbit() {
         super(20, 9, Grass.class, 25); // Call the Animal superclass constructor
         this.assignedNetwork = RabbitHoleNetwork.getInstance(); // Gets a variable that is a shortened version of RabbitHoleNetwork.getInstance(). To much to write each time
         // PathFinder expects starting location, setting to null for now
-        this.hasAttemptetToReproduce = false;
+        this.hasAttemptedToReproduce = false;
         this.hasCreatedHole = false;
-        this.hasAttemptetToCrateHole = false;
+        this.hasAttemptedToCreateHole = false;
 
         System.out.println(this + " created");
     }
@@ -78,11 +78,15 @@ public class Rabbit extends Animal implements DynamicDisplayInformationProvider 
         return this.assignedNetwork.getInhabitants().contains(this);
     }
 
+    public void assignNetwork(RabbitHoleNetwork network) {
+        this.assignedNetwork = network;
+    }
+
 
     @Override
     public void reproduce(World world) {
         this.assignedNetwork.reproduceInhabitant(world);
-        hasAttemptetToReproduce = true;
+        hasAttemptedToReproduce = true;
         System.out.println(this + " reproduced");
     }
 
@@ -192,7 +196,7 @@ public class Rabbit extends Animal implements DynamicDisplayInformationProvider 
      * 5% chance for rabbit to create a hole on the tile it's currently standing on.
      * If current tile already contains nonblocking, then this method simply returns
      */
-    private void tryToMakeHole(@NotNull World world) {
+    private void tryToMakeHole(World world) {
 
         Location currentLocation = world.getLocation(this);
         if(world.containsNonBlocking(currentLocation)) return;
@@ -214,21 +218,20 @@ public class Rabbit extends Animal implements DynamicDisplayInformationProvider 
                 this.goHole(world); // Move towards the assigned hole
             } // Reproduce if in a hole and hasn't attempted yet
             else if (this.isInHole()) {
-                if(!this.hasAttemptetToReproduce)
+                if(!this.hasAttemptedToReproduce)
                 this.reproduce(world);
-            }else if(this.noNearbyHoles(world) && !this.hasAttemptetToCrateHole) {
+            }else if(this.noNearbyHoles(world) && !this.hasAttemptedToCreateHole) {
                 this.tryToMakeHole(world); // Try to make a new hole
-                this.hasAttemptetToCrateHole = true;
+                this.hasAttemptedToCreateHole = true;
                 if(!this.hasCreatedHole) this.wander(world); // Wander if no hole found
                 else this.goHole(world);
             }else{
                 this.wander(world);
             } 
-
         } else {
             // Daytime behavior
             this.actDuringDay(world); // Simplified daytime logic
-            if (!this.hasCreatedHole) this.hasAttemptetToCrateHole = false;
+            if (!this.hasCreatedHole) this.hasAttemptedToCreateHole = false;
         }
         if( !this.isInHole() ) {
             this.eat(world); // Try to eat
@@ -255,7 +258,7 @@ public class Rabbit extends Animal implements DynamicDisplayInformationProvider 
             this.decreaseEnergy(this.getAge() + (this.hasEatenToday ? 0 : 10), world);
             this.resetHunger();
             //System.out.println("Energy levels end of day: " + this.getEnergy());
-            hasAttemptetToReproduce = false;
+            this.hasAttemptedToReproduce = false;
         }
     }
 

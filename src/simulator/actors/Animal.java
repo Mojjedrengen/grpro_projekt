@@ -93,6 +93,7 @@ public abstract class Animal implements Actor {
         age++;
         if (this.energy <= 0 || age > this.maxAge) {
             killAnimal(world);
+            System.out.println("Killed animal due to age");
         }
     }
 
