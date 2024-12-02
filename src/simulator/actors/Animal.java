@@ -208,7 +208,7 @@ public abstract class Animal implements Actor {
      *
      * @return current age of animal
      */
-    protected int getAge() {
+    public int getAge() {
         return this.age;
     }
 
@@ -228,5 +228,6 @@ public abstract class Animal implements Actor {
     public final PathFinder getPathFinder() {
         return this.pathFinder;
     }
+
 
 }
