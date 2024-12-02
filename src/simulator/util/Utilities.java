@@ -17,6 +17,15 @@ import simulator.util.exceptions.FullWorldException;
  */
 public class Utilities {
 
+    public static <T> boolean objectExistsOnSurroundingTiles(Class<T> type, Location location, World world) {
+        Set<Location> tiles = world.getSurroundingTiles(location);
+        for(Location l : tiles) {
+            if(type.isInstance(world.getTile(l))) return true;
+        }
+
+        return false;
+    }
+
     public static <T> T getRandomFromSet(Set<T> set, Random random) {
         final int setSize = set.size();
         if(setSize == 0) return null;
