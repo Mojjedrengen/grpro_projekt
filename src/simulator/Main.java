@@ -57,9 +57,9 @@ public class Main {
 
 
 
-        for (int i = 0; i < 10; i++){
-            p.getWorld().setTile(Utilities.getRandomEmptyLocation(p.getWorld(), p.getSize()), new InfectedAnimal<Rabbit>(Rabbit.class, p.getWorld()));
-        }
+//        for (int i = 0; i < 10; i++){
+//            p.getWorld().setTile(Utilities.getRandomEmptyLocation(p.getWorld(), p.getSize()), new InfectedAnimal<Rabbit>(Rabbit.class, p.getWorld()));
+//        }
 
         p.show();
     }

@@ -4,12 +4,10 @@ import itumulator.world.Location;
 import itumulator.world.World;
 
 import org.jetbrains.annotations.NotNull;
-import simulator.objects.NonBlockable;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.Random;
-import java.util.Set;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import simulator.util.exceptions.FullWorldException;
 
 /**
@@ -125,5 +123,18 @@ public class Utilities {
             }
         }
         return closest;
+    }
+
+    public static Boolean worldContainsTypeOfEntities(World world, Class<?> type) {
+        AtomicBoolean result = new AtomicBoolean(false);
+        Map<Object, Location> entities = world.getEntities();
+        entities.forEach((key, value) -> {
+            if (key.getClass().equals(type)) {
+                if (value != null) {
+                    result.set(true);
+                }
+            }
+        });
+        return result.get();
     }
 }

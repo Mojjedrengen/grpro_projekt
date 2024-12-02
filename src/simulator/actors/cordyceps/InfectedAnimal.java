@@ -9,12 +9,16 @@ import simulator.actors.Animal;
 import simulator.actors.Bear;
 import simulator.actors.Rabbit;
 import simulator.actors.Wolf;
+import simulator.util.Utilities;
 
 import java.awt.*;
 import java.util.Random;
 import java.util.Set;
 
-
+/**
+ * A generic class for animals that are infected by Cordyceps.
+ * @param <T> This is the type of animal it was before it was infected.
+ */
 public class InfectedAnimal<T extends Animal> extends Animal implements Cordyceps, DynamicDisplayInformationProvider {
     static DisplayInformation largeRabbit = new DisplayInformation(Color.magenta, "rabbit-large-fungi");
     static DisplayInformation smallRabbit = new DisplayInformation(Color.magenta, "rabbit-fungi-small");
@@ -26,11 +30,23 @@ public class InfectedAnimal<T extends Animal> extends Animal implements Cordycep
     private final Class<? extends Animal> hostKind;
     private final Class<T> t;
 
+    /**
+     * Constructor used to infect a certain animal
+     * @param hostKind This is the type of animal the host was
+     * @param world The current world
+     * @param host This is the host
+     */
     public InfectedAnimal(Class<T> hostKind, @NotNull World world, Animal host) {
         this(hostKind, world);
         world.delete(host);
         this.age = host.getAge();
     }
+
+    /**
+     * Constructor used to create an infected animal without a stating host
+     * @param hostKind This is the type of animal the infected is infecting
+     * @param world The current world
+     */
     public InfectedAnimal(Class<T> hostKind, @NotNull World world) {
         super(100, 100 , hostKind, 5);
         this.hostKind = hostKind;
@@ -69,6 +85,10 @@ public class InfectedAnimal<T extends Animal> extends Animal implements Cordycep
 
     @Override
     public void act(@NotNull World world){
+        if (!Utilities.worldContainsTypeOfEntities(world, this.foodType)) {
+            this.wander(world);
+            return;
+        }
         if (!this.pathFinder.hasPath()) {
             this.pathFinder.setLocation(world.getLocation(this));
             this.pathFinder.findPathToNearestBlocking(this.foodType, world);
