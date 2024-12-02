@@ -217,8 +217,9 @@ public class Rabbit extends Animal implements DynamicDisplayInformationProvider 
             if (this.hasCreatedHole) {
                 this.goHole(world); // Move towards the assigned hole
             } // Reproduce if in a hole and hasn't attempted yet
-            else if (this.isInHole() && !this.hasAttemptetToReproduce) {
-                this.reproduce(world);
+            else if (this.isInHole()) {
+                if(!this.hasAttemptetToReproduce)
+                    this.reproduce(world);
             }else {
                 if (this.noNearbyHoles(world) && !this.hasCreatedHole && !this.hasAttemptetToCrateHole) {
                     this.tryToMakeHole(world); // Try to make a new hole

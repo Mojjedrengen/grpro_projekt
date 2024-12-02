@@ -70,6 +70,7 @@ public class InfectedAnimal<T extends Animal> extends Animal implements Cordycep
     @Override
     public void act(@NotNull World world){
         if (!this.pathFinder.hasPath()) {
+            this.pathFinder.setLocation(world.getLocation(this));
             this.pathFinder.findPathToNearestBlocking(this.foodType, world);
         }
         if (world.isDay()){
