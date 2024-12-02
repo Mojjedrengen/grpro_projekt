@@ -106,9 +106,9 @@ public abstract class Animal implements Actor {
             
             Carcass carcass;
             if(this instanceof Rabbit) { //Changes carcass display img depending on rabbit or other
-                carcass = new Carcass(Carcass.bigCarcass);
+                carcass = new Carcass(Carcass.bigCarcass, false);
             } else {
-                carcass = new Carcass(Carcass.smallCarcass);
+                carcass = new Carcass(Carcass.smallCarcass, false);
             }
             replaceWithCarcass(carcass, world);
         }

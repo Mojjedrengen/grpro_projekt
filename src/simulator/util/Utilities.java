@@ -5,12 +5,12 @@ import itumulator.world.World;
 
 import org.jetbrains.annotations.NotNull;
 import simulator.objects.NonBlockable;
-import simulator.util.exceptions.FullWorldException;
 
 import java.util.ArrayList;
-import java.util.Set;
-import java.util.Random;
 import java.util.Iterator;
+import java.util.Random;
+import java.util.Set;
+import simulator.util.exceptions.FullWorldException;
 
 /**
  * The Utilities class functions more akin to a namespace rather than a class.
@@ -32,6 +32,12 @@ public class Utilities {
             value = it.next();
 
         return value;
+    }
+
+    public static double getDistance(Location loc1, Location loc2) {
+        return Math.sqrt(
+            Math.pow(loc1.getX() - loc2.getX(), 2) + Math.pow(loc1.getY() - loc2.getY(), 2)
+        );
     }
 
     public static <T> T getRandomFromSet(Set<T> set) {

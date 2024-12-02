@@ -3,7 +3,6 @@ package simulator.objects.plants;
 import itumulator.executable.DisplayInformation;
 import itumulator.executable.DynamicDisplayInformationProvider;
 import itumulator.world.World;
-
 import java.awt.*;
 import java.util.Random;
 
@@ -26,7 +25,7 @@ public class Bush extends Plant implements DynamicDisplayInformationProvider {
     protected int bushAge;
 
     public Bush() {
-        super(3, 40, () -> {return new Bush();});
+        super(3, 10, () -> {return new Bush();});
         this.bushAge = 0;
     }
 

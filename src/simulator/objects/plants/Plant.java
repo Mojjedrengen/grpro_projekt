@@ -92,7 +92,11 @@ public abstract class Plant extends NonBlockable implements Actor {
 
     public Stage getCurrentStage() {
         return this.currentStage;
-    } 
+    }
+
+    public void setToRipe () { //For testing
+        this.currentStage = Stage.RIPE;
+    }
 
     public int getSpreadChance() {
         return this.spreadChance;

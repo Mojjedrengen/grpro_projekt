@@ -7,11 +7,11 @@ import java.io.*;
 import itumulator.executable.DisplayInformation;
 import itumulator.executable.Program;
 
-import simulator.util.WorldLoader;
-import simulator.util.exceptions.InvalidWorldInputFileException;
 import simulator.actors.*;
 import simulator.objects.*;
 import simulator.objects.holes.*;
+import simulator.util.WorldLoader;
+import simulator.util.exceptions.InvalidWorldInputFileException;
 
 /**
  * Main entry point of the program
@@ -24,7 +24,7 @@ public class Main {
         final int delay = 400;
         WorldLoader wl = null;
         try {
-            wl = new WorldLoader("resources/inputs/week-1/wolf_testing.txt", windowResolution, delay);
+            wl = new WorldLoader("resources/inputs/week-1/new_input.txt", windowResolution, delay);
         }catch(InvalidWorldInputFileException e) {
             System.out.println("WorldLoader: Syntax error in input file");
             System.out.println("Line number: " + e.getLineNumber());

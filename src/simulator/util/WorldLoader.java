@@ -13,6 +13,7 @@ import itumulator.executable.Program;
 import itumulator.world.World;
 import itumulator.world.Location;
 
+import simulator.objects.Carcass;
 import simulator.objects.NonBlockable;
 import simulator.actors.*;
 import simulator.objects.holes.RabbitHole;
@@ -168,6 +169,10 @@ public class WorldLoader {
             return () -> { return new Bush(); };
             case "burrow":
             return () -> { return new RabbitHole(); };
+            case "carcass":
+                return () -> { return new Carcass(Carcass.smallCarcass, false); };
+            case "carcass fungi":
+                return () -> { return new Carcass(Carcass.smallCarcass, true); };
             default:
             return null;
         }
