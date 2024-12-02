@@ -169,7 +169,7 @@ public class WorldLoader {
                 return () -> { return new Bush(); };
             case "burrow":
                 return () -> { return new RabbitHole(); };
-            case "carcass":
+            case "carcass": //TODO make random between choosing small and big carcass
                 return () -> { return new Carcass(Carcass.smallCarcass, false); };
             case "carcass fungi":
                 return () -> { return new Carcass(Carcass.smallCarcass, true); };

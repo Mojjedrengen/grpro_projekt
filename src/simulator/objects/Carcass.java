@@ -5,6 +5,8 @@ import itumulator.world.Location;
 import itumulator.world.World;
 import itumulator.executable.DisplayInformation;
 import itumulator.executable.DynamicDisplayInformationProvider;
+import simulator.objects.plants.Fungi;
+
 import java.awt.*;
 
 
@@ -58,22 +60,38 @@ public class Carcass extends NonBlockable implements DynamicDisplayInformationPr
     }
 
     public void age(World world) {
+
         currentAge++;
         if (currentAge >= maxAge) {
             Location current = world.getLocation(this);
             if (this.hasFungi()) {
-                // Careful with removes, as act method is still called.
-                // Then when we call getLocation() it throws an exception!
-                //world.remove(this);
+                world.delete(this);
+                System.out.println("Removed carcass due to age");
+                if(this.carcassImage == bigCarcass) {
+                    world.setTile(current, new Fungi(true));
+                    System.out.println("Placed large fungi");
+                } else {
+                    world.setTile(current, new Fungi(false));
+                    System.out.println("Placed small fungi");
+                }
+
                 //Set a fungi in current Location to replace the infected carcass
             } else {
-                //world.remove(this);
+                world.delete(this);
             }
         }
     }
 
     @Override
     public void act(World world) {
-        this.age(world);
+        if(world.getCurrentTime() == 0) {
+            if (currentAge < maxAge) {
+                this.age(world);
+            }
+        }
+    }
+
+    public void infectWithFungi(World world) {
+        this.hasFungi = true;
     }
 }
