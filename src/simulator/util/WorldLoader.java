@@ -16,6 +16,7 @@ import itumulator.world.Location;
 import simulator.objects.Carcass;
 import simulator.objects.NonBlockable;
 import simulator.actors.*;
+import simulator.actors.cordyceps.*;
 import simulator.objects.holes.RabbitHole;
 import simulator.objects.holes.WolfHole;
 import simulator.util.exceptions.*;
@@ -90,7 +91,7 @@ public class WorldLoader {
             // Ignore blank lines
             if(inputLine.length() == 0) continue;
 
-            this.parseLine(inputLine, lineNumber, random);
+            this.parseLine(inputLine.toLowerCase(), lineNumber, random);
         }
 
         scanner.close();
@@ -132,6 +133,7 @@ public class WorldLoader {
         return this.program;
     }
 
+
     /**
      * Determines dynamic class type of animal from name of animal.
      * Returns supplier lambda function which calls the constructor of the animal
@@ -147,6 +149,12 @@ public class WorldLoader {
             return () -> { return new Wolf(); };
             case "bear":
             return () -> { return new Bear(); };
+            case "cordyceps rabbit":
+            return () -> { return new InfectedAnimal<Rabbit>(Rabbit.class, this.world); };
+            case "cordyceps wolf":
+            return () -> { return new InfectedAnimal<Wolf>(Wolf.class, this.world); };
+            case "cordyceps bear":
+            return () -> { return new InfectedAnimal<Bear>(Bear.class, this.world); };
             default:
             return null;
         }
@@ -241,6 +249,10 @@ public class WorldLoader {
         return new Location(Integer.parseInt(tokens[0]), Integer.parseInt(tokens[1]));
     }
 
+    private boolean isCordyceps(final String[] tokens) {
+        return tokens[0].trim().equals("cordyceps");
+    }
+
     /** 
      * Used to parse an individual line of the world input file. Except for
      * the very first line containing the world size number.
@@ -250,15 +262,34 @@ public class WorldLoader {
      * @param line - the line to parse
      * @param lineNumber - the line number for the line. Only used for debugging purposes
      */
-    private void parseLine(String line, final int lineNumber, final Random random) { 
-        line = line.toLowerCase();
-        final String[] tokens = line.split(" ");
+    private void parseLine(final String line, final int lineNumber, final Random random) { 
+        String[] tokens = line.split(" ");
 
         // This is to account for two types of inputs:
         // a: Rabbit 1
         // b: Rabbit 1 (3,4)
-        if(tokens.length != 2 && tokens.length != 3) 
+        if(tokens.length < 2) 
         throw new InvalidWorldInputFileException("Unrecongized input format", line, lineNumber);
+
+        {
+            Function<String[], String[]> mergeTokens = (list) -> {
+
+                // New array without the last element since we don't need that anymore
+                // Some logic further down requires the length to be 3 if a coordinate is specified
+                if(list.length == 4)
+                return new String[]{list[0], list[2], list[3]};
+                else if(list.length == 3)
+                return new String[]{list[0], list[2]};
+                else {
+                    throw new InvalidWorldInputFileException("Unrecongized input format, expecting 2-4 tokens", line, lineNumber);
+                }
+            };
+
+            if(this.isCordyceps(tokens)) {
+                tokens[0] = "cordyceps " + tokens[1].trim();
+                tokens = mergeTokens.apply(tokens);
+            } // add else if fungi here when merging with fungi branch
+        }
 
         // Parses the number or range that comes after object name, e.g. "Rabbit 2" or "Rabbit 5-10"
         // In case of range, parseObjectNumber returns random number within that range
@@ -276,7 +307,7 @@ public class WorldLoader {
 
         final String unknownObjectString = tokens[0].trim();
 
-        { // Intentional useless identation for readability. 
+    { // Intentional useless identation for readability. 
 
             // Check if object is an animal
             Supplier<? extends Animal> animalConstructor = parseAnimal(unknownObjectString);
@@ -300,9 +331,9 @@ public class WorldLoader {
                         Utilities.getRandomEmptyLocation(random, this.world, this.worldSize), 
                         newAnimal
                     );
-                    
+
                     if(wolfPack != null) {
-                        ((Wolf)newAnimal).joinWolfPack(wolfPack);
+                    ((Wolf)newAnimal).joinWolfPack(wolfPack);
                     } 
                 }
             }else if(nonBlockableConstructor != null) {

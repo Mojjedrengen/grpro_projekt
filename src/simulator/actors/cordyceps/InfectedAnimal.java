@@ -89,7 +89,7 @@ public class InfectedAnimal<T extends Animal> extends Animal implements Cordycep
             this.wander(world);
             return;
         }
-        if (!this.pathFinder.hasPath()) {
+        if (!this.pathFinder.hasPath() || !(world.getTile(this.pathFinder.getFinalLocationInPath()) instanceof Rabbit)) {
             this.pathFinder.setLocation(world.getLocation(this));
             this.pathFinder.findPathToNearestBlocking(this.foodType, world);
         }
@@ -98,6 +98,8 @@ public class InfectedAnimal<T extends Animal> extends Animal implements Cordycep
             if (nextStep == null) this.wander(world);
             if (world.isTileEmpty(nextStep)) world.move(this, nextStep);
             else this.wander(world);
+        }else {
+            this.wander(world);
         }
 
         decompose(world);
