@@ -47,7 +47,7 @@ public class Rabbit extends Animal implements DynamicDisplayInformationProvider 
     private boolean hasAttemptedToReproduce;
     private RabbitHoleNetwork assignedNetwork; // The singleton of the network
     private boolean hasCreatedHole;
-    private boolean hasAttemptedToCrateHole; //boolean to make sure the rabbit don't spend all night trying to make a hole
+    private boolean hasAttemptedToCreateHole; //boolean to make sure the rabbit don't spend all night trying to make a hole
 
 
     public Rabbit() {
@@ -56,7 +56,7 @@ public class Rabbit extends Animal implements DynamicDisplayInformationProvider 
         // PathFinder expects starting location, setting to null for now
         this.hasAttemptedToReproduce = false;
         this.hasCreatedHole = false;
-        this.hasAttemptedToCrateHole = false;
+        this.hasAttemptedToCreateHole = false;
 
         System.out.println(this + " created");
     }
@@ -65,7 +65,7 @@ public class Rabbit extends Animal implements DynamicDisplayInformationProvider 
     // Check if the rabbit has an assigned hole
     @Deprecated
     public boolean hasHole() {
-        return assignedNetwork.getEntrances() != null;
+        return assignedNetwork.getEntrances() != null && assignedNetwork.getEntrances().size() > 0;
     }
 
     /**
@@ -92,7 +92,6 @@ public class Rabbit extends Animal implements DynamicDisplayInformationProvider 
 
     // Move towards the assigned hole
     public void goHole(World world) {
-        //TODO: Change logic to make it so it can randomly crate a new hole if it hasn't done it in its lifetime.
         if (!hasHole() || isInHole()) return; //Returns if it meets any of the two conditions
 
 
@@ -165,18 +164,13 @@ public class Rabbit extends Animal implements DynamicDisplayInformationProvider 
      * If it finds one, it assigns itself to the hole and goes to it
      */
     private boolean noNearbyHoles(World world) {
-       try {
-            Set<Location> search = world.getSurroundingTiles(2);
-            for (Location location : search) {
-                if (world.containsNonBlocking(location) && world.getNonBlocking(location) instanceof RabbitHole) {
-                   return false;
-                }
+        Set<Location> search = world.getSurroundingTiles(2);
+        for (Location location : search) {
+            if (world.containsNonBlocking(location) && world.getNonBlocking(location) instanceof RabbitHole) {
+                return false;
             }
-           return true;
-       } catch (Exception e) {
-           System.out.println(this + " throws: " + e);
-           return false;
-       }
+        }
+        return true;
     }
 
     /**
@@ -210,56 +204,47 @@ public class Rabbit extends Animal implements DynamicDisplayInformationProvider 
         Random random = new Random();
         if(random.nextInt(101) <= 95) return;
 
+        this.hasCreatedHole = true;
+
         // TODO find a way to add this to our WorldLoader list
-        this.assignedNetwork.createHole(world, world.getLocation(this));
+        this.assignedNetwork.createHole(world, currentLocation);
     }
 
     @Override
     public void act(World world) {
         if (world.isNight()) {
             // Nighttime behavior
-            if (this.hasCreatedHole) {
+            if (this.hasCreatedHole || this.hasHole()) {
                 this.goHole(world); // Move towards the assigned hole
             } // Reproduce if in a hole and hasn't attempted yet
-            //else if (this.isInHole() && !this.hasAttemptedToReproduce) { <- No good! Causes rabbit to think it's not in hole when it is!
             else if (this.isInHole()) {
                 if(!this.hasAttemptedToReproduce)
-                    this.reproduce(world);
-            }else {
-                if (this.noNearbyHoles(world) && !this.hasCreatedHole && !this.hasAttemptedToCrateHole) {
-                    this.tryToMakeHole(world); // Try to make a new hole
-                    this.hasAttemptedToCrateHole = true;
-                    if (this.noNearbyHoles(world) && !this.hasCreatedHole) this.wander(world); // Wander if no hole found
-                } else {
-                    if (this.assignedNetwork.getEntrances().isEmpty()) {
-                        this.tryToMakeHole(world);
-                    } else {
-                        this.goHole(world);
-                    }
-                }
-            }
-
-            // Reproduce if in a hole and hasn't attempted yet
-            if (this.isInHole() && !this.hasAttemptedToReproduce) {
                 this.reproduce(world);
-            }
+            }else if(this.noNearbyHoles(world) && !this.hasAttemptedToCreateHole) {
+                this.tryToMakeHole(world); // Try to make a new hole
+                this.hasAttemptedToCreateHole = true;
+                if(!this.hasCreatedHole) this.wander(world); // Wander if no hole found
+                else this.goHole(world);
+            }else{
+                this.wander(world);
+            } 
         } else {
             // Daytime behavior
             this.actDuringDay(world); // Simplified daytime logic
-            if (!this.hasCreatedHole) this.hasAttemptedToCrateHole = false;
+            if (!this.hasCreatedHole) this.hasAttemptedToCreateHole = false;
         }
         if( !this.isInHole() ) {
             this.eat(world); // Try to eat
 
             // Bad practice by using instanceof, we have disappointed Claus, but this will have to do for now
             // Potential fix would be keeping a separate list containing all rabbit holes in the world
-//            Location currentLocation = world.getLocation(this);
-//            if(world.containsNonBlocking(currentLocation)) {
-//                NonBlockable nonBlock = (NonBlockable)world.getNonBlocking(world.getLocation(this));
-//                if(nonBlock instanceof RabbitHole rabbitHole) {
-//                    this.setAssignedNetwork(rabbitHole.getNetwork());
-//                }
-//            }
+            //            Location currentLocation = world.getLocation(this);
+            //            if(world.containsNonBlocking(currentLocation)) {
+            //                NonBlockable nonBlock = (NonBlockable)world.getNonBlocking(world.getLocation(this));
+            //                if(nonBlock instanceof RabbitHole rabbitHole) {
+            //                    this.setAssignedNetwork(rabbitHole.getNetwork());
+            //                }
+            //            }
             //TODO: I see no point in above code. Please review and remove
         }
 
@@ -297,7 +282,7 @@ public class Rabbit extends Animal implements DynamicDisplayInformationProvider 
         if(!this.hasEatenToday) {
             // Check if rabbit already has path to food or/and if final destination in path still has food.
             if(!this.pathFinder.hasPath() ||
-                    !Utilities.locationContainsNonBlockingType(world, this.pathFinder.getFinalLocationInPath(), this.foodType)) {
+            !Utilities.locationContainsNonBlockingType(world, this.pathFinder.getFinalLocationInPath(), this.foodType)) {
                 // Go to nearest food. Inherited from Animal
                 this.findPathToNearestFood(world);
             }

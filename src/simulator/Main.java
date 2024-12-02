@@ -8,8 +8,10 @@ import itumulator.executable.DisplayInformation;
 import itumulator.executable.Program;
 
 import simulator.actors.*;
+import simulator.actors.cordyceps.InfectedAnimal;
 import simulator.objects.*;
 import simulator.objects.holes.*;
+import simulator.util.Utilities;
 import simulator.util.WorldLoader;
 import simulator.util.exceptions.InvalidWorldInputFileException;
 
@@ -52,6 +54,12 @@ public class Main {
         System.out.println("world size: " + wl.getWorldSize());
         System.out.println("Animals size: " + animals.size());
         System.out.println("NonBlockabes size: " + nonBlockables.size());
+
+
+
+//        for (int i = 0; i < 10; i++){
+//            p.getWorld().setTile(Utilities.getRandomEmptyLocation(p.getWorld(), p.getSize()), new InfectedAnimal<Rabbit>(Rabbit.class, p.getWorld()));
+//        }
 
         p.show();
     }
