@@ -32,6 +32,9 @@ public class Carcass extends NonBlockable implements DynamicDisplayInformationPr
         this.carcassImage = carcassImage;
         this.currentAge = 0;
         this.hasFungi = hasFungi;
+
+        if(this.hasFungi) System.out.println("Carcass Constructor: Carcass WITH fungi created");
+        else System.out.println("Carcass Constructor: Carcass WITHOUT fungi created");
     }
 
     public static final DisplayInformation smallCarcass = new DisplayInformation(Color.yellow, "carcass-small");
@@ -43,7 +46,7 @@ public class Carcass extends NonBlockable implements DynamicDisplayInformationPr
 
     public void consume(World world) {
         this.meatLeft--;
-        if (meatLeft <= 0) world.remove(this);
+        if (meatLeft <= 0) world.delete(this);
     }
 
     public int getMeatLeft() {
@@ -59,10 +62,12 @@ public class Carcass extends NonBlockable implements DynamicDisplayInformationPr
         if (currentAge >= maxAge) {
             Location current = world.getLocation(this);
             if (this.hasFungi()) {
-                world.remove(this);
+                // Careful with removes, as act method is still called.
+                // Then when we call getLocation() it throws an exception!
+                //world.remove(this);
                 //Set a fungi in current Location to replace the infected carcass
             } else {
-                world.remove(this);
+                //world.remove(this);
             }
         }
     }

@@ -57,7 +57,7 @@ public class WorldLoader {
         this.delay = delay;
 
         File inputFile = new File(filePath);
-        if(!inputFile.isFile()) throw new IllegalArgumentException("Not a file");
+        if(!inputFile.isFile()) throw new IllegalArgumentException("Not a file or file not found");
 
         this.animals = new LinkedList<>();
         this.nonblockables = new LinkedList<>();
@@ -142,11 +142,11 @@ public class WorldLoader {
     private Supplier<? extends Animal> parseAnimal(final String unknownObjectString) {
         switch(unknownObjectString) {
             case "rabbit":
-            return () -> { return new Rabbit(); };
+                return () -> { return new Rabbit(); };
             case "wolf":
-            return () -> { return new Wolf(); };
+                return () -> { return new Wolf(); };
             case "bear":
-            return () -> { return new Bear(); };
+                return () -> { return new Bear(); };
             default:
             return null;
         }
@@ -162,13 +162,13 @@ public class WorldLoader {
     private Supplier<? extends NonBlockable> parseNonBlockable(final String unknownObjectString) {
         switch(unknownObjectString) {
             case "grass":
-            return () -> { return new Grass(); };
+                return () -> { return new Grass(); };
             case "bush":
-            return () -> { return new Bush(); };
+                return () -> { return new Bush(); };
             case "berry":
-            return () -> { return new Bush(); };
+                return () -> { return new Bush(); };
             case "burrow":
-            return () -> { return new RabbitHole(); };
+                return () -> { return new RabbitHole(); };
             case "carcass":
                 return () -> { return new Carcass(Carcass.smallCarcass, false); };
             case "carcass fungi":
@@ -241,6 +241,19 @@ public class WorldLoader {
         return new Location(Integer.parseInt(tokens[0]), Integer.parseInt(tokens[1]));
     }
 
+    /**
+     * If Carcass has fungi, then it is always the second token that specifies that  
+     * Example:
+     * Carcass fungi 1 (2,3)
+     *
+     * @param tokens the input tokens split by white space
+     * @return whether if input line specifies fungi
+     */
+    private boolean hasFungi(final String[] tokens) {
+        if(tokens.length < 2) return false;
+        return tokens[1].trim().equals("fungi");
+    }
+
     /** 
      * Used to parse an individual line of the world input file. Except for
      * the very first line containing the world size number.
@@ -252,13 +265,41 @@ public class WorldLoader {
      */
     private void parseLine(String line, final int lineNumber, final Random random) { 
         line = line.toLowerCase();
-        final String[] tokens = line.split(" ");
+        String[] tokens = line.split(" ");
 
-        // This is to account for two types of inputs:
-        // a: Rabbit 1
-        // b: Rabbit 1 (3,4)
-        if(tokens.length != 2 && tokens.length != 3) 
-        throw new InvalidWorldInputFileException("Unrecongized input format", line, lineNumber);
+        // Smallest type of input looks something like this:
+        // Rabbit 1
+        // Therefore, token length must at least be 2
+        // Longest type of input looks like this
+        // Carcass fungi 1 (1,2)
+        // Therefore, token length cannot be greater than 4
+        if(tokens.length < 2 || tokens.length > 4) 
+        throw new InvalidWorldInputFileException("Unrecongized input format, expecting 2-4 tokens", line, lineNumber);
+
+        // Check if input involves fungi, in which case we need to ensure it's a carcass fungi.
+        // If so, then transform the tokens into something we can parse
+        if( this.hasFungi(tokens) ) {
+
+            if(!tokens[0].trim().equals("carcass"))
+            throw new InvalidWorldInputFileException("Fungi can only exist on a carcass", line, lineNumber);
+
+            tokens[0] = "carcass fungi";
+
+            // Now that the first two tokens have been merged, move all other tokens back
+            for(int i = 1; i < tokens.length - 1; i++) {
+                tokens[i] = tokens[i+1];
+            }
+
+            // New array without the last element since we don't need that anymore
+            // Some logic further down requires the length to be 3 if a coordinate is specified
+            if(tokens.length == 4)
+                tokens = new String[]{tokens[0], tokens[1], tokens[2]};
+            else if(tokens.length == 3)
+                tokens = new String[]{tokens[0], tokens[1]};
+            else {
+                throw new InvalidWorldInputFileException("Unrecongized input format, expecting 2-4 tokens", line, lineNumber);
+            }
+        }
 
         // Parses the number or range that comes after object name, e.g. "Rabbit 2" or "Rabbit 5-10"
         // In case of range, parseObjectNumber returns random number within that range
@@ -267,6 +308,8 @@ public class WorldLoader {
         throw new InvalidWorldInputFileException("Invalid number or range of objects", line, lineNumber);
 
         final Location objectLocation;
+        // Check if line is long enough to contain a specific coordinate.
+        // If so, make sure that the length of the line isn't simply due to line containing fungi token
         if(tokens.length == 3) {
             if(numberOfObjects != 1)
             throw new InvalidWorldInputFileException("Cannot place multiple objects of the same type on the same tile", line, lineNumber);
@@ -300,9 +343,9 @@ public class WorldLoader {
                         Utilities.getRandomEmptyLocation(random, this.world, this.worldSize), 
                         newAnimal
                     );
-                    
+
                     if(wolfPack != null) {
-                        ((Wolf)newAnimal).joinWolfPack(wolfPack);
+                    ((Wolf)newAnimal).joinWolfPack(wolfPack);
                     } 
                 }
             }else if(nonBlockableConstructor != null) {
