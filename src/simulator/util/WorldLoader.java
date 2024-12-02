@@ -260,6 +260,7 @@ public class WorldLoader {
     private boolean hasFungi(final String[] tokens) {
         if(tokens.length < 2) return false;
         return tokens[1].trim().equals("fungi");
+    }
 
     private boolean isCordyceps(final String[] tokens) {
         return tokens[0].trim().equals("cordyceps");

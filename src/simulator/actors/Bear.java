@@ -54,7 +54,7 @@ public class Bear extends Animal implements DynamicDisplayInformationProvider, P
             if (world.containsNonBlocking(location) &&
                 world.getNonBlocking(location) instanceof simulator.objects.Carcass carcass) {
                 carcass.consume(world); // Consume the carcass
-                System.out.println("Bear ate a carcass!");
+                //System.out.println("Bear ate a carcass!");
                 this.ate();
                 this.increaseEnergy(30); // Bears get more energy from carcasses
                 return true; // Exit as a carcass was eaten

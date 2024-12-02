@@ -35,8 +35,6 @@ public class Carcass extends NonBlockable implements DynamicDisplayInformationPr
         this.currentAge = 0;
         this.hasFungi = hasFungi;
 
-        if(this.hasFungi) System.out.println("Carcass Constructor: Carcass WITH fungi created");
-        else System.out.println("Carcass Constructor: Carcass WITHOUT fungi created");
     }
 
     public static final DisplayInformation smallCarcass = new DisplayInformation(Color.yellow, "carcass-small");
