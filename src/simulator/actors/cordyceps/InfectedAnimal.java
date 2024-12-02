@@ -27,11 +27,15 @@ public class InfectedAnimal<T extends Animal> extends Animal implements Cordycep
     private final Class<T> t;
 
     public InfectedAnimal(Class<T> hostKind, @NotNull World world, Animal host) {
-        super(100, 100 , hostKind, 5);
+        this(hostKind, world);
         world.delete(host);
         this.age = host.getAge();
+    }
+    public InfectedAnimal(Class<T> hostKind, @NotNull World world) {
+        super(100, 100 , hostKind, 5);
         this.hostKind = hostKind;
         this.t = hostKind;
+        this.age = 1;
     }
 
     @Override
@@ -66,10 +70,11 @@ public class InfectedAnimal<T extends Animal> extends Animal implements Cordycep
     @Override
     public void act(@NotNull World world){
         if (!this.pathFinder.hasPath()) {
-            this.findPathToNearestFood(world);
+            this.pathFinder.findPathToNearestBlocking(this.foodType, world);
         }
         if (world.isDay()){
             Location nextStep = this.pathFinder.getPath().poll();
+            if (nextStep == null) this.wander(world);
             if (world.isTileEmpty(nextStep)) world.move(this, nextStep);
             else this.wander(world);
         }
