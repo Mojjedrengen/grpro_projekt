@@ -37,7 +37,7 @@ public class InfectedAnimal<T extends Animal> extends Animal implements Cordycep
      * @param host This is the host
      */
     public InfectedAnimal(Class<T> hostKind, @NotNull World world, Animal host) {
-        this(hostKind, world);
+        this(hostKind);
         world.delete(host);
         this.age = host.getAge();
     }
@@ -45,9 +45,8 @@ public class InfectedAnimal<T extends Animal> extends Animal implements Cordycep
     /**
      * Constructor used to create an infected animal without a stating host
      * @param hostKind This is the type of animal the infected is infecting
-     * @param world The current world
      */
-    public InfectedAnimal(Class<T> hostKind, @NotNull World world) {
+    public InfectedAnimal(Class<T> hostKind) {
         super(100, 100 , hostKind, 5);
         this.hostKind = hostKind;
         this.t = hostKind;
