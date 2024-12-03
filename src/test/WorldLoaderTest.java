@@ -29,6 +29,8 @@ class WorldLoaderTest {
         assertTrue(wl.getNonBlockables().size() == 3);
         assertTrue(wl.getAnimals().size() == 0);
 
+        assertTrue( this.wl.getProgram().getWorld().getEntities().keySet().size() == wl.getNonBlockables().size() + wl.getAnimals().size() );
+
         List<NonBlockable> nonBlockables = wl.getNonBlockables();
         for(NonBlockable nb : nonBlockables) {
             if(!(nb instanceof Grass)) {
@@ -48,6 +50,8 @@ class WorldLoaderTest {
         assertTrue(wl.getWorldSize() == 10);
         assertTrue(wl.getNonBlockables().size() == 1);
         assertTrue(wl.getAnimals().size() == 0);
+
+        assertTrue( this.wl.getProgram().getWorld().getEntities().keySet().size() == wl.getNonBlockables().size() + wl.getAnimals().size() );
 
         List<NonBlockable> nonBlockables = wl.getNonBlockables();
         for(NonBlockable nb : nonBlockables) {
@@ -72,6 +76,7 @@ class WorldLoaderTest {
         assertTrue(wl.getWorldSize() == 10);
         assertTrue(nonBlockables.size() >= 20 && nonBlockables.size() <= 30);
         assertTrue(wl.getAnimals().size() == 1);
+        assertTrue( this.wl.getProgram().getWorld().getEntities().keySet().size() == wl.getNonBlockables().size() + wl.getAnimals().size() );
 
         for(NonBlockable nb : nonBlockables) {
             if(!(nb instanceof Grass)) {
@@ -100,6 +105,7 @@ class WorldLoaderTest {
         assertTrue(wl.getWorldSize() == 5);
         assertTrue(nonBlockables.size() == 0);
         assertTrue(wl.getAnimals().size() == 1);
+        assertTrue( this.wl.getProgram().getWorld().getEntities().keySet().size() == wl.getNonBlockables().size() + wl.getAnimals().size() );
 
         for(Animal animal : wl.getAnimals()) {
             if(!(animal instanceof Rabbit)) {
@@ -122,6 +128,7 @@ class WorldLoaderTest {
         assertTrue(wl.getWorldSize() == 5);
         assertTrue(nonBlockables.size() == 0);
         assertTrue(animals.size() == 2);
+        assertTrue( this.wl.getProgram().getWorld().getEntities().keySet().size() == wl.getNonBlockables().size() + wl.getAnimals().size() );
 
         for(Animal animal : wl.getAnimals()) {
             if(!(animal instanceof Rabbit)) {
@@ -144,6 +151,7 @@ class WorldLoaderTest {
         assertTrue(wl.getWorldSize() == 10);
         assertTrue(nonBlockables.size() >= 3 && nonBlockables.size() <= 10);
         assertTrue(animals.size() >= 2 && animals.size() <= 4);
+        assertTrue( this.wl.getProgram().getWorld().getEntities().keySet().size() == wl.getNonBlockables().size() + wl.getAnimals().size() );
 
         for(Animal animal : wl.getAnimals()) {
             if(!(animal instanceof Rabbit)) {
@@ -171,6 +179,7 @@ class WorldLoaderTest {
         assertTrue(wl.getWorldSize() == 15);
         assertTrue(nonBlockables.size() == 0);
         assertTrue(animals.size() == 4);
+        assertTrue( this.wl.getProgram().getWorld().getEntities().keySet().size() == wl.getNonBlockables().size() + wl.getAnimals().size() );
 
         for(Animal animal : wl.getAnimals()) {
             if(!(animal instanceof Rabbit)) {
@@ -194,6 +203,7 @@ class WorldLoaderTest {
         assertTrue(wl.getWorldSize() == 15);
         assertTrue(nonBlockables.size() == 1);
         assertTrue(animals.size() == 5);
+        assertTrue( this.wl.getProgram().getWorld().getEntities().keySet().size() == wl.getNonBlockables().size() + wl.getAnimals().size() );
 
         for(Animal animal : wl.getAnimals()) {
             if(!(animal instanceof Rabbit)) {
@@ -222,6 +232,7 @@ class WorldLoaderTest {
         assertTrue(wl.getWorldSize() == 15);
         assertTrue(nonBlockables.size() == 1);
         assertTrue(animals.size() == 5);
+        assertTrue( this.wl.getProgram().getWorld().getEntities().keySet().size() == wl.getNonBlockables().size() + wl.getAnimals().size() );
 
         for(Animal animal : wl.getAnimals()) {
             if(!(animal instanceof Rabbit)) {
@@ -250,6 +261,7 @@ class WorldLoaderTest {
         assertTrue(wl.getWorldSize() == 15);
         assertTrue(nonBlockables.size() == 3);
         assertTrue(animals.size() >= 3 && animals.size() <= 7);
+        assertTrue( this.wl.getProgram().getWorld().getEntities().keySet().size() == wl.getNonBlockables().size() + wl.getAnimals().size() );
 
         for(Animal animal : wl.getAnimals()) {
             if(!(animal instanceof Rabbit)) {
@@ -278,6 +290,7 @@ class WorldLoaderTest {
         assertTrue(wl.getWorldSize() == 5);
         assertTrue(nonBlockables.size() == 0);
         assertTrue(animals.size() == 1);
+        assertTrue( this.wl.getProgram().getWorld().getEntities().keySet().size() == wl.getNonBlockables().size() + wl.getAnimals().size() );
 
         for(Animal animal : wl.getAnimals()) {
             if(!(animal instanceof Wolf)) {
@@ -301,6 +314,7 @@ class WorldLoaderTest {
         assertTrue(wl.getWorldSize() == 10);
         assertTrue(nonBlockables.size() >= 2 && nonBlockables.size() <= 7);
         assertTrue(animals.size() == 3);
+        assertTrue( this.wl.getProgram().getWorld().getEntities().keySet().size() == wl.getNonBlockables().size() + wl.getAnimals().size() );
 
         final int expectedWolfCount = 1;
         final int expectedRabbitCount = 2;

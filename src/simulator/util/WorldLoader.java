@@ -5,6 +5,7 @@ import java.util.Scanner;
 import java.util.List;
 import java.util.LinkedList;
 import java.util.Random;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.function.*;
@@ -95,6 +96,22 @@ public class WorldLoader {
         }
 
         scanner.close();
+
+        // Some animals and nonblockables might have a specificed coordinate
+        // and therefore have been placed there. The rest need random locations
+        // that we assign now. We don't place objects randomly as we create
+        // them as we might risk placing an object at a location which might
+        // later be overriden by a specificed coordinate.
+        Map<Object, Location> placedObjects = world.getEntities();
+        for(Animal animal : this.animals) {
+            if(placedObjects.containsKey(animal)) continue;
+            world.setTile(Utilities.getRandomEmptyLocation(random, this.world, this.worldSize), animal );
+        }
+
+        for(NonBlockable nonBlockable  : this.nonblockables) {
+            if(placedObjects.containsKey(nonBlockable)) continue;
+            world.setTile(Utilities.getRandomEmptyNonBlockingLocation(random, this.world, this.worldSize), nonBlockable);
+        }
     }
 
     /**
@@ -345,11 +362,12 @@ public class WorldLoader {
                 for(int i = 0; i < numberOfObjects; i++) {
                     newAnimal = animalConstructor.get();
                     this.animals.add(newAnimal);
-                    this.world.setTile((objectLocation != null && this.world.isTileEmpty(objectLocation)) ? 
-                        objectLocation : 
-                        Utilities.getRandomEmptyLocation(random, this.world, this.worldSize), 
-                        newAnimal
-                    );
+                    if(objectLocation != null) {
+                        if(this.world.isTileEmpty(objectLocation))
+                        this.world.setTile(objectLocation, newAnimal);
+                        else
+                        throw new InvalidWorldInputFileException("Cannot place two blocking objects on same tile", line, lineNumber);
+                    }
 
                     if(wolfPack != null) {
                     ((Wolf)newAnimal).joinWolfPack(wolfPack);
@@ -361,9 +379,13 @@ public class WorldLoader {
                 for(int i = 0; i < numberOfObjects; i++) {
                     newNonBlockable = nonBlockableConstructor.get();
                     this.nonblockables.add(newNonBlockable);
-                    this.world.setTile((objectLocation != null && !this.world.containsNonBlocking(objectLocation)) ? 
-                        objectLocation :  
-                        Utilities.getRandomEmptyNonBlockingLocation(random, this.world, this.worldSize), newNonBlockable);
+                    if(objectLocation != null) {
+                        if(!this.world.containsNonBlocking(objectLocation))
+                        this.world.setTile(objectLocation, newNonBlockable);
+                        else
+                        throw new InvalidWorldInputFileException("Cannot place two blocking objects on same tile", line, lineNumber);
+                    }
+
                 }
             }else throw new InvalidWorldInputFileException("Unknown Animal/NonBlockable", line, lineNumber);
 
