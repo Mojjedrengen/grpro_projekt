@@ -101,6 +101,7 @@ public class RabbitTest {
 
         Location startingLocation = new Location(0,0);
         Location rabbitHoleLocation = new Location(1,2);
+        RabbitHoleNetwork.getInstance().addHole(rh);
 
 
         this.w.setNight();

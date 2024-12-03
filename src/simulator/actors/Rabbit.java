@@ -94,40 +94,36 @@ public class Rabbit extends Animal implements DynamicDisplayInformationProvider 
     public void goHole(World world) {
         if (!hasHole() || isInHole()) return; //Returns if it meets any of the two conditions
 
-
         Location currentLocation = world.getLocation(this);
-        //Location rabbitHoleLocation = assignedHole.getLocation(world);
-        Location rabbitHoleLocation = Utilities.getClosestLocationFromSet(this.assignedNetwork.getHoleLocation(world), world.getLocation(this));
+        this.pathFinder.setLocation(currentLocation);
 
-        if (currentLocation.equals(rabbitHoleLocation)) { // Rabbit enters hole
-            this.assignedNetwork.getHoleFromLocation(world, rabbitHoleLocation).enterRabbit(this, world);
+        if(!this.pathFinder.hasPath()
+        || Utilities.locationContainsNonBlockingType(world, this.pathFinder.getFinalLocationInPath(), RabbitHole.class)) {
+            this.pathFinder.findPathToNearest(RabbitHole.class, world);
+        }
+
+        //Location rabbitHoleLocation = assignedHole.getLocation(world);
+        // Avoid having to iterate through every single rabbit for every call to goHole()
+        //Location rabbitHoleLocation = Utilities.getClosestLocationFromSet(this.assignedNetwork.getHoleLocation(world), world.getLocation(this));
+
+        if ( Utilities.locationContainsNonBlockingType(world, currentLocation, RabbitHole.class)  ) { // Rabbit enters hole
+
+            ((RabbitHole)world.getNonBlocking(currentLocation)).enterRabbit(this, world);
+
+            // Weird bug causing test seeksRabbitHoleAtNightTest() to fail.
+            // The hole.GetLocation() method cannot find the hole on the map despite being on the map.
+            // Temporary fix is the fact that we already now current location is hole location
+            //this.assignedNetwork.getHoleFromLocation(world, currentLocation).enterRabbit(this, world);
             return;
         }
         //if statement to only go towards hole if it's evening time...
         // Find path to the hole and move one step towards it
 
-        this.pathFinder.setLocation(currentLocation);
-        Location nextStep = null;
-        if(pathFinder.hasPath() &&
-                pathFinder.isFinalLocationInPath(rabbitHoleLocation) ) {
-
-            nextStep = (this.pathFinder.getPath()).poll(); // Move closer to goal
-        }else { // Path hasn't been found yet
-
-            // findPathToLocation returns false if no route was found
-            if(!this.pathFinder.findPathToLocation(rabbitHoleLocation, world)) {
-                // No route to hole
-                return;
+        if(this.pathFinder.hasPath()) {
+            Location nextStep = this.pathFinder.getPath().poll();
+            if(world.isTileEmpty(nextStep)) {
+                world.move(this, nextStep); // Move rabbit to the next step
             }
-            nextStep = this.pathFinder.getPath().poll(); // Move closer to goal
-        }
-
-        if(world.isTileEmpty(nextStep)) {
-            world.move(this, nextStep); // Move rabbit to the next step
-        } else {
-            //Path is blocked
-            // pathFinder obstruction fixer method is underway!
-            // pathFinder.fixObstructedPath();
         }
     }
 
@@ -165,6 +161,7 @@ public class Rabbit extends Animal implements DynamicDisplayInformationProvider 
      */
     private boolean noNearbyHoles(World world) {
         Set<Location> search = world.getSurroundingTiles(2);
+        search.add(world.getCurrentLocation());
         for (Location location : search) {
             if (world.containsNonBlocking(location) && world.getNonBlocking(location) instanceof RabbitHole) {
                 return false;
@@ -173,10 +170,28 @@ public class Rabbit extends Animal implements DynamicDisplayInformationProvider 
         return true;
     }
 
+    private void nightTimeBehaviour(World world) {
+        // Nighttime behavior
+        if (this.hasCreatedHole || !this.noNearbyHoles(world)) {
+            this.goHole(world); // Move towards the assigned hole
+        } // Reproduce if in a hole and hasn't attempted yet
+        else if (this.isInHole()) {
+            if(!this.hasAttemptedToReproduce)
+            this.reproduce(world);
+        }else if(!this.hasAttemptedToCreateHole) {
+            this.tryToMakeHole(world); // Try to make a new hole
+            this.hasAttemptedToCreateHole = true;
+            if(!this.hasCreatedHole) this.wander(world); // Wander if no hole found
+            else this.goHole(world);
+        }else{
+            this.wander(world);
+        } 
+    }
+
     /**
      * Rabbit day behaviour.
      */
-    private void actDuringDay(World world) {
+    private void dayTimeBehaviour(World world) {
         // Exit hole if in one(since it's day time)
         if (isInHole()) {
             exitHole(world);
@@ -213,39 +228,15 @@ public class Rabbit extends Animal implements DynamicDisplayInformationProvider 
     @Override
     public void act(World world) {
         if (world.isNight()) {
-            // Nighttime behavior
-            if (this.hasCreatedHole || this.hasHole()) {
-                this.goHole(world); // Move towards the assigned hole
-            } // Reproduce if in a hole and hasn't attempted yet
-            else if (this.isInHole()) {
-                if(!this.hasAttemptedToReproduce)
-                this.reproduce(world);
-            }else if(this.noNearbyHoles(world) && !this.hasAttemptedToCreateHole) {
-                this.tryToMakeHole(world); // Try to make a new hole
-                this.hasAttemptedToCreateHole = true;
-                if(!this.hasCreatedHole) this.wander(world); // Wander if no hole found
-                else this.goHole(world);
-            }else{
-                this.wander(world);
-            } 
+            this.nightTimeBehaviour(world);
         } else {
             // Daytime behavior
-            this.actDuringDay(world); // Simplified daytime logic
+            this.dayTimeBehaviour(world); // Simplified daytime logic
             if (!this.hasCreatedHole) this.hasAttemptedToCreateHole = false;
         }
         if( !this.isInHole() ) {
             this.eat(world); // Try to eat
 
-            // Bad practice by using instanceof, we have disappointed Claus, but this will have to do for now
-            // Potential fix would be keeping a separate list containing all rabbit holes in the world
-            //            Location currentLocation = world.getLocation(this);
-            //            if(world.containsNonBlocking(currentLocation)) {
-            //                NonBlockable nonBlock = (NonBlockable)world.getNonBlocking(world.getLocation(this));
-            //                if(nonBlock instanceof RabbitHole rabbitHole) {
-            //                    this.setAssignedNetwork(rabbitHole.getNetwork());
-            //                }
-            //            }
-            //TODO: I see no point in above code. Please review and remove
         }
 
         // End of day logic:aging, energy loss, and reset
