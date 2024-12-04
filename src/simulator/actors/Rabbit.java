@@ -58,7 +58,6 @@ public class Rabbit extends Animal implements DynamicDisplayInformationProvider 
         this.hasCreatedHole = false;
         this.hasAttemptedToCreateHole = false;
 
-        System.out.println(this + " created");
     }
 
 
