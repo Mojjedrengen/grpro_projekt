@@ -19,7 +19,6 @@ import simulator.objects.NonBlockable;
 import simulator.actors.*;
 import simulator.actors.cordyceps.*;
 import simulator.objects.holes.RabbitHole;
-import simulator.objects.holes.WolfHole;
 import simulator.util.exceptions.*;
 import simulator.objects.plants.Grass;
 import simulator.objects.plants.Bush;
@@ -167,11 +166,11 @@ public class WorldLoader {
             case "bear":
                 return () -> { return new Bear(); };
             case "cordyceps rabbit":
-            return () -> { return new InfectedAnimal<Rabbit>(Rabbit.class, this.world); };
+            return () -> { return new InfectedAnimal<Rabbit>(Rabbit.class); };
             case "cordyceps wolf":
-            return () -> { return new InfectedAnimal<Wolf>(Wolf.class, this.world); };
+            return () -> { return new InfectedAnimal<Wolf>(Wolf.class); };
             case "cordyceps bear":
-            return () -> { return new InfectedAnimal<Bear>(Bear.class, this.world); };
+            return () -> { return new InfectedAnimal<Bear>(Bear.class); };
             default:
             return null;
         }
