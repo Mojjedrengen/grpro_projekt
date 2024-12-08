@@ -3,7 +3,6 @@ package simulator.objects.holes;
 
 import itumulator.world.Location;
 import itumulator.world.World;
-import org.jetbrains.annotations.NotNull;
 import simulator.actors.Animal;
 import simulator.actors.Predator;
 
@@ -46,7 +45,7 @@ public class RabbitHole extends Hole{
         }
     }
 
-    public boolean predatorNearby(@NotNull World world){
+    public boolean predatorNearby(World world){
         Set<Location> neighbors = world.getSurroundingTiles(this.getLocation(world), 3);
         Set<Predator> nearbyPredator = world.getAll(Predator.class, neighbors);
         return !nearbyPredator.isEmpty();

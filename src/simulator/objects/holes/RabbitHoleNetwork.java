@@ -2,7 +2,6 @@ package simulator.objects.holes;
 
 import itumulator.world.Location;
 import itumulator.world.World;
-import org.jetbrains.annotations.NotNull;
 import simulator.actors.Animal;
 import simulator.actors.Rabbit;
 
@@ -33,7 +32,7 @@ public class RabbitHoleNetwork {
         this.entrances.add(hole);
     }
 
-    public void createHole(@NotNull World world, Location location) {
+    public void createHole(World world, Location location) {
         if (world.containsNonBlocking(location)) return;
         RabbitHole hole = new RabbitHole();
         this.entrances.add(hole);

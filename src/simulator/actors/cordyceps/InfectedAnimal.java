@@ -4,7 +4,6 @@ import itumulator.executable.DisplayInformation;
 import itumulator.executable.DynamicDisplayInformationProvider;
 import itumulator.world.Location;
 import itumulator.world.World;
-import org.jetbrains.annotations.NotNull;
 import simulator.actors.Animal;
 import simulator.actors.Bear;
 import simulator.actors.Rabbit;
@@ -36,7 +35,7 @@ public class InfectedAnimal<T extends Animal> extends Animal implements Cordycep
      * @param world The current world
      * @param host This is the host
      */
-    public InfectedAnimal(Class<T> hostKind, @NotNull World world, Animal host) {
+    public InfectedAnimal(Class<T> hostKind, World world, Animal host) {
         this(hostKind);
         world.delete(host);
         this.age = host.getAge();
@@ -54,7 +53,7 @@ public class InfectedAnimal<T extends Animal> extends Animal implements Cordycep
     }
 
     @Override
-    public void spread(@NotNull World world, Class<? extends Animal> hostKind) {
+    public void spread(World world, Class<? extends Animal> hostKind) {
         Set<Location> neighbours = world.getSurroundingTiles(3);
         Set<T> nearbyKind = world.getAll(t, neighbours);
         if (nearbyKind.isEmpty()) return;
@@ -69,7 +68,7 @@ public class InfectedAnimal<T extends Animal> extends Animal implements Cordycep
     }
 
     @Override
-    public void decompose(@NotNull World world) {
+    public void decompose(World world) {
         if (world.getCurrentTime() == World.getTotalDayDuration()/2) {
             this.takeDamage(1, world);
             this.age++;
@@ -77,13 +76,13 @@ public class InfectedAnimal<T extends Animal> extends Animal implements Cordycep
     }
 
     @Override
-    public void killAnimal(@NotNull World world) {
+    public void killAnimal(World world) {
         this.spread(world, hostKind);
         world.delete(this);
     }
 
     @Override
-    public void act(@NotNull World world){
+    public void act(World world){
         if (!Utilities.worldContainsTypeOfEntities(world, this.foodType)) {
             this.wander(world);
             return;

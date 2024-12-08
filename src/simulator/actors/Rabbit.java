@@ -11,7 +11,6 @@ import java.util.Set;
 
 import java.awt.Color;
 
-//import org.jetbrains.annotations.NotNull;
 import simulator.objects.holes.RabbitHoleNetwork;
 import simulator.objects.plants.Grass;
 import simulator.objects.NonBlockable;

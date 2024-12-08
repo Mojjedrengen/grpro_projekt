@@ -3,8 +3,6 @@ package simulator.util;
 import itumulator.world.Location;
 import itumulator.world.World;
 
-import org.jetbrains.annotations.NotNull;
-
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -117,7 +115,7 @@ public class Utilities {
     }
 
 
-    public static Location getClosestLocationFromSet(@NotNull Set<Location> set, @NotNull Location startLocation) {
+    public static Location getClosestLocationFromSet( Set<Location> set, Location startLocation) {
         Location closest = null;
         int closestDistance = Integer.MAX_VALUE;
         int x1 = startLocation.getX();
