@@ -39,7 +39,7 @@ public class Bear extends Animal implements DynamicDisplayInformationProvider, P
         for (Location location : surroundingLocations) {
             Object obj = world.getTile(location);
             if (obj instanceof Rabbit || obj instanceof Wolf) {
-                System.out.println("Bear attacked prey at " + location);
+//                System.out.println("Bear attacked prey at " + location);
                 this.attack((Animal) obj, world);
                 return true; // Prey was attacked
             }
@@ -71,7 +71,7 @@ public class Bear extends Animal implements DynamicDisplayInformationProvider, P
                 world.getNonBlocking(location) instanceof Bush bush &&
                 bush.getCurrentStage() == Plant.Stage.RIPE) {
                 bush.consume(world);
-                System.out.println("Bear ate berries!");
+                //System.out.println("Bear ate berries!");
                 this.ate();
                 this.increaseEnergy(20);
                 return true;
