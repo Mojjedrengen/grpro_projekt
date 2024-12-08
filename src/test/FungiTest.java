@@ -47,7 +47,10 @@ public class FungiTest {
         world.setTile(fungiLocation, fungi);
         world.setTile(carcassLocation, carcass);
 
-        fungi.act(world);
+        world.setCurrentLocation(fungiLocation);
+
+        for(int i = 0; i < 20; i++)
+            fungi.act(world);
 
         assertTrue(carcass.hasFungi(), "Carcass should be infected with fungi after spreading");
     }
@@ -149,7 +152,8 @@ public class FungiTest {
         world.setTile(carcassLocation1, carcass1);
         world.setTile(carcassLocation2, carcass2);
 
-        fungi.act(world);
+        for(int i = 0; i < 40; i++)
+            fungi.act(world);
 
         assertTrue(carcass1.hasFungi(), "Carcass 1 should be infected with fungi");
         assertTrue(carcass2.hasFungi(), "Carcass 2 should be infected with fungi");

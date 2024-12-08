@@ -55,9 +55,9 @@ public class Fungi extends Plant implements DynamicDisplayInformationProvider {
         // If it isnt surrounded by carcass' age fungi
         if (!CarcassNearby(world)) {
             this.currentAge++;
-            System.out.println("Aged a fungi");
+            //System.out.println("Aged a fungi");
             if (this.currentAge >= this.maxAge) {
-                System.out.println("Removed a fungi due to age");
+                //System.out.println("Removed a fungi due to age");
                 world.delete(this); // Fungi dies and is removed
             }
         }
@@ -91,7 +91,7 @@ public class Fungi extends Plant implements DynamicDisplayInformationProvider {
                         !carcass.hasFungi()) {
                     if (random.nextInt(1, 101) <= this.spreadChance) {
                         carcass.infectWithFungi(world); // Infect the carcass with fungi
-                        System.out.println("Infected a carcass");
+                        //System.out.println("Infected a carcass");
                         spread = true;
                     }
                 }

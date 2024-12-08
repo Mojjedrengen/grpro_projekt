@@ -25,10 +25,10 @@ public class Carcass extends NonBlockable implements DynamicDisplayInformationPr
     public Carcass(final DisplayInformation carcassImage, boolean hasFungi) {
         if (carcassImage == bigCarcass) {
             meatLeft = 4;
-            maxAge = 4;
+            maxAge = 40;
         } else {
             meatLeft = 2;
-            maxAge = 2;
+            maxAge = 20;
         }
 
         this.carcassImage = carcassImage;
@@ -64,13 +64,13 @@ public class Carcass extends NonBlockable implements DynamicDisplayInformationPr
             Location current = world.getLocation(this);
             if (this.hasFungi()) {
                 world.delete(this);
-                System.out.println("Removed carcass due to age");
+                //System.out.println("Removed carcass due to age");
                 if(this.carcassImage == bigCarcass) {
                     world.setTile(current, new Fungi(true));
                     System.out.println("Placed large fungi");
                 } else {
                     world.setTile(current, new Fungi(false));
-                    System.out.println("Placed small fungi");
+                    //System.out.println("Placed small fungi");
                 }
 
                 //Set a fungi in current Location to replace the infected carcass
