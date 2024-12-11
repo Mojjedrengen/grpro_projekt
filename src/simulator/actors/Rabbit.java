@@ -85,7 +85,7 @@ public class Rabbit extends Animal implements DynamicDisplayInformationProvider 
     public void reproduce(World world) {
         this.assignedNetwork.reproduceInhabitant(world);
         hasAttemptedToReproduce = true;
-        System.out.println(this + " reproduced");
+        //System.out.println(this + " reproduced");
     }
 
     // Move towards the assigned hole
@@ -170,13 +170,13 @@ public class Rabbit extends Animal implements DynamicDisplayInformationProvider 
 
     private void nightTimeBehaviour(World world) {
         // Nighttime behavior
-        if (this.hasCreatedHole || !this.noNearbyHoles(world)) {
-            this.goHole(world); // Move towards the assigned hole
-        } // Reproduce if in a hole and hasn't attempted yet
-        else if (this.isInHole()) {
+        if (this.isInHole()) {
             if(!this.hasAttemptedToReproduce)
             this.reproduce(world);
-        }else if(!this.hasAttemptedToCreateHole) {
+        }else if (this.hasCreatedHole || !this.noNearbyHoles(world)) {
+            this.goHole(world); // Move towards the assigned hole
+        } // Reproduce if in a hole and hasn't attempted yet
+        else if(!this.hasAttemptedToCreateHole) {
             this.tryToMakeHole(world); // Try to make a new hole
             this.hasAttemptedToCreateHole = true;
             if(!this.hasCreatedHole) this.wander(world); // Wander if no hole found
@@ -215,7 +215,7 @@ public class Rabbit extends Animal implements DynamicDisplayInformationProvider 
         if(world.containsNonBlocking(currentLocation)) return;
 
         Random random = new Random();
-        if(random.nextInt(101) <= 95) return;
+        if(random.nextInt(101) <= 85) return;
 
         this.hasCreatedHole = true;
 
