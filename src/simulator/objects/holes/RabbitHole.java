@@ -16,7 +16,7 @@ public class RabbitHole extends Hole{
         this.inhabitants = null;
         this.network = RabbitHoleNetwork.getInstance();
         this.network.addHole(this);
-        System.out.println(this + " is part of " + this.network);
+        //System.out.println(this + " is part of " + this.network);
     }
 
     public void enterRabbit(Animal rabbit, World world) {

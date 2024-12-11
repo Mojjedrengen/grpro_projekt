@@ -258,6 +258,8 @@ Predator {
 
                 }, world
             );
+
+            if(this.pathFinder.getPath().size() < 2) this.pathFinder.clearPath();
         }
 
         

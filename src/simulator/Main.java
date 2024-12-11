@@ -26,7 +26,7 @@ public class Main {
         final int delay = 400;
         WorldLoader wl = null;
         try {
-            wl = new WorldLoader("resources/inputs/week-3/t3-2ab.txt", windowResolution, delay);
+            wl = new WorldLoader("resources/inputs/week-3/tf3-3ab.txt", windowResolution, delay);
         }catch(InvalidWorldInputFileException e) {
             System.out.println("WorldLoader: Syntax error in input file");
             System.out.println("Line number: " + e.getLineNumber());
